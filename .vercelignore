@@ -1,0 +1,11 @@
+# Khronos glTF sample models — reference/debug only, not game assets.
+# These 13 CC0 models (~58MB) live under public/ for the bootstrap pipeline
+# (interim placeholders) but must NOT be uploaded to Vercel / shipped to users.
+# Also stripped from dist/ after vite build (see scripts/strip-deploy-debug-assets.mjs).
+public/models/khronos/
+
+# Source asset pipeline (dev-time only)
+assets-source/
+
+# Draco encoder (build-time only, 954KB — decoder stays for runtime)
+draco/gltf/draco_encoder.js

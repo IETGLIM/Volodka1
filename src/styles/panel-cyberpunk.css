@@ -1,0 +1,436 @@
+/* ══════════════════════════════════════════════════════════════
+   TASK 7: AAA Cyberpunk UI Styling Enhancements
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Holographic shimmer animation for panel headers ─── */
+@keyframes holo-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.holo-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--cyber-cyan-rgb) / 0.08) 25%,
+    rgb(var(--cyber-cyan-rgb) / 0.15) 50%,
+    rgb(var(--cyber-cyan-rgb) / 0.08) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: holo-shimmer 4s ease-in-out infinite;
+}
+
+/* ─── Glitch text effect for important text elements ─── */
+@keyframes glitch-text {
+  0%, 100% { text-shadow: 2px 0 #ff0040, -2px 0 #0ff; }
+  25% { text-shadow: -2px 0 #ff0040, 2px 0 #0ff; }
+  50% { text-shadow: 2px 2px #ff0040, -2px -2px #0ff; }
+  75% { text-shadow: -2px -2px #ff0040, 2px 2px #0ff; }
+}
+
+.glitch-text-fx {
+  animation: glitch-text 0.3s ease-in-out;
+}
+
+/* ─── Energy bar pulse for low energy ─── */
+@keyframes energy-critical {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.energy-critical {
+  animation: energy-critical 1s ease-in-out infinite;
+}
+
+/* ─── Panel entrance animation with slide + fade ─── */
+@keyframes panel-slide-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.panel-slide-in {
+  animation: panel-slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Data stream background animation for panel backgrounds ─── */
+@keyframes data-stream {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 -100px; }
+}
+
+.data-stream-bg {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgb(var(--cyber-cyan-rgb) / 0.015) 3px,
+      rgb(var(--cyber-cyan-rgb) / 0.015) 4px
+    );
+  background-size: 100% 100px;
+  animation: data-stream 8s linear infinite;
+}
+
+/* ─── Neon border glow utility classes ─── */
+.neon-border-cyan {
+  border: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  box-shadow: 0 0 10px rgb(var(--cyber-cyan-rgb) / 0.1), inset 0 0 10px rgb(var(--cyber-cyan-rgb) / 0.05);
+}
+
+.neon-border-amber {
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.1), inset 0 0 10px rgba(251, 191, 36, 0.05);
+}
+
+.neon-border-rose {
+  border: 1px solid rgba(251, 113, 133, 0.3);
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.1), inset 0 0 10px rgba(251, 113, 133, 0.05);
+}
+
+/* ─── Stat change indicator animation ─── */
+@keyframes stat-flash-positive {
+  0% { color: #34d399; text-shadow: 0 0 8px rgba(52, 211, 153, 0.5); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@keyframes stat-flash-negative {
+  0% { color: #fb7185; text-shadow: 0 0 8px rgba(251, 113, 133, 0.5); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+.stat-flash-positive {
+  animation: stat-flash-positive 0.8s ease-out;
+}
+
+.stat-flash-negative {
+  animation: stat-flash-negative 0.8s ease-out;
+}
+
+/* ─── Scanline overlay for panels ─── */
+.panel-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  pointer-events: none;
+  z-index: var(--z-decor-scanline);
+}
+
+/* ─── Ambient floating particles for status panel ─── */
+@keyframes ambient-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-30px) translateX(10px); opacity: 0; }
+}
+
+.ambient-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgb(var(--cyber-cyan-rgb) / 0.4);
+  box-shadow: 0 0 4px rgb(var(--cyber-cyan-rgb) / 0.3);
+  pointer-events: none;
+  animation: ambient-float 6s ease-in-out infinite;
+}
+
+/* ─── Close button hover glow ─── */
+.close-btn-glow {
+  transition: all 0.2s ease;
+}
+
+.close-btn-glow:hover {
+  box-shadow: 0 0 12px rgb(var(--cyber-cyan-rgb) / 0.3), 0 0 4px rgb(var(--cyber-cyan-rgb) / 0.2);
+  background: rgb(var(--cyber-cyan-rgb) / 0.08);
+}
+
+/* ─── Corner bracket decorations — enhanced with double-line effect ─── */
+.corner-bracket {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: var(--z-decor-bracket);
+}
+
+.corner-bracket-tl {
+  top: 0; left: 0;
+  border-top: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  border-left: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  box-shadow: -1px -1px 4px rgb(var(--cyber-cyan-rgb) / 0.06);
+}
+
+.corner-bracket-tr {
+  top: 0; right: 0;
+  border-top: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  border-right: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  box-shadow: 1px -1px 4px rgb(var(--cyber-cyan-rgb) / 0.06);
+}
+
+.corner-bracket-bl {
+  bottom: 0; left: 0;
+  border-bottom: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  border-left: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  box-shadow: -1px 1px 4px rgb(var(--cyber-cyan-rgb) / 0.06);
+}
+
+.corner-bracket-br {
+  bottom: 0; right: 0;
+  border-bottom: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  border-right: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  box-shadow: 1px 1px 4px rgb(var(--cyber-cyan-rgb) / 0.06);
+}
+
+/* ─── Panel inner glow — subtle radial glow inside panels ─── */
+.panel-inner-glow {
+  position: relative;
+}
+
+.panel-inner-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgb(var(--cyber-cyan-rgb) / 0.03) 0%, transparent 60%);
+}
+
+/* ─── Panel header underline — animated gradient line ─── */
+@keyframes panel-header-line {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.panel-header-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--cyber-cyan-rgb) / 0.3), transparent);
+  background-size: 200% 100%;
+  animation: panel-header-line 6s ease-in-out infinite;
+}
+
+/* ── Enhanced Panel Corner Accents ── */
+.panel-corner-accent {
+  position: relative;
+}
+
+.panel-corner-accent::before,
+.panel-corner-accent::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: rgba(0, 229, 255, 0.3);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.panel-corner-accent::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.panel-corner-accent::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* ── Panel Data Stream ── */
+.panel-data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-data-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(0, 229, 255, 0.5) 15%, 
+    rgba(0, 255, 100, 0.3) 50%, 
+    rgba(0, 229, 255, 0.5) 85%, 
+    transparent
+  );
+  animation: dataStreamFlow 3s linear infinite;
+}
+
+@keyframes dataStreamFlow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Cyberpunk Tooltip Enhancement ── */
+.cyber-tooltip-enhanced {
+  position: relative;
+}
+
+.cyber-tooltip-enhanced::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  padding: 4px 10px;
+  background: rgba(2, 6, 23, 0.95);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-family: monospace;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 100;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+}
+
+.cyber-tooltip-enhanced:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* ── Panel Scanline Subtle ── */
+.panel-scanlines-subtle {
+  position: relative;
+}
+
+.panel-scanlines-subtle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ── Cyber hover glow — subtle cyan outer glow for button hover states ── */
+/* ── Examine Panel Enhancement ── */
+.examine-panel-border {
+  border-image: linear-gradient(
+    135deg,
+    rgba(0, 229, 255, 0.3),
+    rgba(0, 229, 255, 0.1) 30%,
+    rgba(147, 130, 220, 0.2) 70%,
+    rgba(147, 130, 220, 0.3)
+  ) 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Glassmorphism Polish — Animated borders & inner glow
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Animated conic-gradient border rotation for open panels ── */
+@property --conic-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes conic-border-rotate {
+  from { --conic-angle: 0deg; }
+  to { --conic-angle: 360deg; }
+}
+
+.glass-panel-dark-open {
+  position: relative;
+}
+
+.glass-panel-dark-open::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--conic-angle),
+    rgba(0, 229, 255, 0.25),
+    rgba(0, 229, 255, 0.05) 25%,
+    rgba(147, 130, 220, 0.15) 50%,
+    rgba(0, 229, 255, 0.05) 75%,
+    rgba(0, 229, 255, 0.25)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: conic-border-rotate 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+}
+
+/* ── Inner glow at top edge — faint cyan light leak ── */
+.glass-panel-inner-glow-top::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 229, 255, 0.18) 30%,
+    rgba(0, 229, 255, 0.3) 50%,
+    rgba(0, 229, 255, 0.18) 70%,
+    transparent
+  );
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.12), 0 0 4px rgba(0, 229, 255, 0.08);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+/* ── Static top border with cyan glow ── */
+.glass-panel-glow-top {
+  border-top: 1px solid rgba(0, 229, 255, 0.15);
+  box-shadow: 0 -1px 8px rgba(0, 229, 255, 0.06), inset 0 1px 0 rgba(0, 229, 255, 0.05);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   XP Gain Bar Animation
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Floating "+X XP" text that fades up and out ── */
+@keyframes xp-float-up {
+  0% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+
+.xp-float-text {
+  animation: xp-float-up 1.2s ease-out forwards;
+  pointer-events: none;
+  white-space: nowrap;
+}

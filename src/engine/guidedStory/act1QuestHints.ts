@@ -1,0 +1,303 @@
+/** Live contextual cues for high-traffic Act 1–2 spine quests. */
+
+import { getGameSnapshot } from '@/engine/GameActionDispatcher';
+import { QUEST_DEFINITIONS } from '@/data/quests';
+import type { QuestState } from '@/shared/types/game';
+
+function findActiveQuest(questId: string): QuestState | null {
+  try {
+    const snap = getGameSnapshot();
+    return snap.quests.find((q) => q.questId === questId && q.status === 'active') ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function objectiveDone(quest: QuestState, objectiveId: string): boolean {
+  return quest.objectives[objectiveId] === true;
+}
+
+/** Связь с Викторией — street meet → chip → poem. */
+export function getMariaConnectionHint(currentSceneId?: string): string | null {
+  const quest = findActiveQuest('maria_connection');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'meet_maria')) {
+    return currentSceneId === 'street_night'
+      ? 'Переулок у подъезда — Виктория ждёт в тени [E]'
+      : 'Выйди на ночную улицу — Виктория в переулке у подъезда';
+  }
+  if (!objectiveDone(quest, 'accept_chip')) {
+    return 'Прими чип данных у Виктории — в диалоге или в истории встречи';
+  }
+  if (!objectiveDone(quest, 'read_maria_poem')) {
+    return 'Открой чип в инвентаре или дочитай стих в сцене встречи';
+  }
+  return null;
+}
+
+/** Шёпот за стойкой — barista tip → alley silhouette. */
+export function getCafeStreetWhisperHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('cafe_street_whisper');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'ask_barista_tip')) {
+    return currentSceneId === 'cafe_evening'
+      ? 'Спроси баристу про ночных гостей у стойки [E]'
+      : 'Зайди в «Синюю яму» — бариста знает про силуэт у подъезда';
+  }
+  if (!objectiveDone(quest, 'spot_alley_silhouette')) {
+    return currentSceneId === 'street_night'
+      ? 'Глянь в переулок у подъезда — силуэт уже смотрит на тебя'
+      : 'Выйди на ночную улицу — ищи силуэт в переулке';
+  }
+  return null;
+}
+
+/** Пропуск из Синей ямы — cafe echo → summons → guild lobby. */
+export function getChipCafeClearanceHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('chip_cafe_clearance');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'return_cafe_with_chip')) {
+    return currentSceneId === 'cafe_evening'
+      ? 'Ты в «Синей яме» — подойди к стойке, чип уже теплеет'
+      : 'Вернись в «Синюю яму» со стихом чипа — бариста услышит эхо';
+  }
+  if (!objectiveDone(quest, 'barista_hears_echo')) {
+    return currentSceneId === 'cafe_evening'
+      ? 'У стойки — дай баристе услышать эхо чипа [E]'
+      : 'Стойка «Синей ямы» ждёт — эхо чипа открывает пропуск';
+  }
+  if (!objectiveDone(quest, 'receive_guild_summons')) {
+    return currentSceneId === 'cafe_evening'
+      ? 'Дождись пропуска на пене — свиток и единица'
+      : 'Забери невидимый пропуск у баристы, затем к башне';
+  }
+  if (!objectiveDone(quest, 'reach_guild_lobby')) {
+    return currentSceneId === 'office_day'
+      ? 'Ты в холле гильдии — эхо чипа уже здесь'
+      : 'Иди в офис IT-гильдии — холл и доска #4729';
+  }
+  return null;
+}
+
+/** Дозор в холле — chip warmth → bulletin → colleague gaze. */
+export function getOfficeLobbyWatchHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('office_lobby_watch');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'feel_chip_warmth')) {
+    return currentSceneId === 'office_day'
+      ? 'У стены серверной чип теплеет — постой рядом'
+      : 'Зайди в холл офиса — у серверной стены чип отзовётся';
+  }
+  if (!objectiveDone(quest, 'read_incident_bulletin')) {
+    return currentSceneId === 'office_day'
+      ? 'Глянь на доску объявлений — бриф #4729'
+      : 'В холле гильдии на доске — приоритет инцидента';
+  }
+  if (!objectiveDone(quest, 'notice_colleague_watch')) {
+    return currentSceneId === 'office_day'
+      ? 'Коллега у турникета слишком долго смотрит — заметь его'
+      : 'В холле кто-то следит — вернись и поймай взгляд';
+  }
+  return null;
+}
+
+/** Вызов ночного города — corridor → street → cafe → pulse. */
+export function getNightCityCallHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('night_city_call');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'leave_home')) {
+    return currentSceneId === 'volodka_room'
+      ? 'Открой дверь в коридор [E] — город уже зовёт'
+      : 'Выйди в коридор подъезда — первый шаг за порог';
+  }
+  if (!objectiveDone(quest, 'reach_street')) {
+    return currentSceneId === 'volodka_corridor' || currentSceneId === 'volodka_kitchen'
+      ? 'Через кухню или подъезд — на ночную улицу'
+      : 'Выйди на ночную улицу — неон покажет «Синюю яму»';
+  }
+  if (!objectiveDone(quest, 'enter_cafe')) {
+    return currentSceneId === 'street_night'
+      ? 'Зайди в кафе «Синяя яма» — вывеска мигает в дожде'
+      : 'Кафе «Синяя яма» ждёт — иди с ночной улицы';
+  }
+  if (!objectiveDone(quest, 'feel_city_pulse')) {
+    return currentSceneId === 'street_night'
+      ? 'Присядь на скамейку или глянь на башню гильдии — услышь пульс'
+      : 'Вернись на улицу — пульс города у скамейки и у башни';
+  }
+  return null;
+}
+
+/** Инцидент #4729 — office → Alexander → codebreaker. */
+export function getIncidentScrollHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('incident_scroll_4729');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'visit_office')) {
+    return currentSceneId === 'office_day'
+      ? 'Ты в офисе — найди Александра у терминалов'
+      : 'Иди в офис IT-гильдии — Александр ждёт у инцидента #4729';
+  }
+  if (!objectiveDone(quest, 'talk_alexander')) {
+    return 'Поговори с Александром о шифре инцидента [E]';
+  }
+  if (!objectiveDone(quest, 'crack_the_code')) {
+    return 'Запусти мини-игру «Взломщик кода» на терминале гильдии';
+  }
+  if (!objectiveDone(quest, 'start_diagnosis')) {
+    return 'Начни диагностику кода — подтверди расшифровку у терминала';
+  }
+  if (!objectiveDone(quest, 'discover_poem_in_code')) {
+    return 'Дочитай расшифровку — в коде спрятаны стихи';
+  }
+  return null;
+}
+
+/** Стих в логах — poem pressure → colleague → vault rumor. */
+export function getCodePoemAftermathHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('code_poem_aftermath');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'absorb_decoded_poem')) {
+    return currentSceneId === 'office_day'
+      ? 'Дочитай стих на терминале инцидента — строки уже проступают'
+      : 'Вернись в офис — стих из #4729 ждёт на экране';
+  }
+  if (!objectiveDone(quest, 'feel_guild_pressure')) {
+    return currentSceneId === 'office_day'
+      ? 'Гильдия уже шепчет за стеклом — почувствуй давление KPI'
+      : 'В офисе после расшифровки давят тишиной — вернись';
+  }
+  if (!objectiveDone(quest, 'ask_colleague_politics')) {
+    return currentSceneId === 'office_day'
+      ? 'Подойди к коллеге у станций — пока Александр отвернулся [E]'
+      : 'Коллега в офисе знает про стёртые архивы — найди его';
+  }
+  if (!objectiveDone(quest, 'hear_vault_lead')) {
+    return currentSceneId === 'office_day'
+      ? 'Вытащи из коллеги слух о Хранилище — шёпотом'
+      : 'Слух о Хранилище — у коллеги в офисе гильдии';
+  }
+  return null;
+}
+
+/** Сплин пятницы — home → poem_4 → Albert bridge. */
+export function getFridaySpleenHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('friday_spleen');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'leave_office_dusk')) {
+    return currentSceneId === 'office_day'
+      ? 'Пора уйти из офиса — балкон и дом ждут'
+      : 'После намёка на Хранилище выйди из офиса к вечеру';
+  }
+  if (!objectiveDone(quest, 'stand_on_balcony')) {
+    return currentSceneId === 'home_evening' || currentSceneId === 'volodka_room'
+      ? 'Постой у окна или на балконе — город диктует строки'
+      : 'Вернись домой вечером — балкон и кухня зовут';
+  }
+  if (!objectiveDone(quest, 'write_friday_poem')) {
+    return 'Запиши пятничный сплин — стих об одиночестве уже складывается';
+  }
+  if (!objectiveDone(quest, 'hear_albert_bridge')) {
+    return currentSceneId === 'cafe_evening'
+      ? 'Альберт в углу — спроси про живой код [E]'
+      : 'Зайди в «Синюю яму» к Альберту — он знает мост к Сети';
+  }
+  return null;
+}
+
+/** Собрание стихов — nudge toward next poem target label. */
+export function getPoetryCollectionHint(): string | null {
+  const quest = findActiveQuest('poetry_collection');
+  if (!quest) return null;
+  const def = QUEST_DEFINITIONS.find((q) => q.id === 'poetry_collection');
+  if (!def) return null;
+  const next = def.objectives.find((o) => quest.objectives[o.id] !== true);
+  if (!next) return null;
+  return `Следующий стих: ${next.description.replace(/^Стихотворение\s+[IVXLC]+\s*—\s*/i, '')}`;
+}
+
+/** Испытание Хранилища — colleague → terminal → poem. */
+export function getVaultBackupTrialHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('vault_backup_trial');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'learn_about_vault')) {
+    return currentSceneId === 'office_day'
+      ? 'Спроси коллегу у рабочих станций о Хранилище [E]'
+      : 'Вернись в офис IT-гильдии — коллега знает про Хранилище';
+  }
+  if (!objectiveDone(quest, 'hack_vault_terminal')) {
+    return 'Взломай терминал Хранилища — мини-игра «Терминал»';
+  }
+  if (!objectiveDone(quest, 'get_vault_access')) {
+    return 'Дождись подтверждения доступа — или обойди стихом «Прорыв»';
+  }
+  if (!objectiveDone(quest, 'find_backup_poem')) {
+    return 'В резервной копии спрятан стих — забери его';
+  }
+  return null;
+}
+
+/** Посвящение в Сеть — Victoria → hack → oath. */
+export function getNetworkInitiationHint(currentSceneId: string): string | null {
+  const quest = findActiveQuest('network_initiation');
+  if (!quest) return null;
+  if (!objectiveDone(quest, 'meet_maria_again')) {
+    return currentSceneId === 'street_night' || currentSceneId === 'cafe_evening'
+      ? 'Найди Викторию — она проведёт посвящение в Сеть [E]'
+      : 'Виктория ждёт для посвящения — ищи её на улице или в кафе';
+  }
+  if (!objectiveDone(quest, 'navigate_network')) {
+    return 'Пройди проверку Сети — мини-игра «Взлом»';
+  }
+  if (!objectiveDone(quest, 'recite_hidden_poem')) {
+    return 'На тайной встрече прочитай стих по памяти';
+  }
+  if (!objectiveDone(quest, 'swear_oath')) {
+    return 'Принеси клятву Сети — закрепи верность слову';
+  }
+  if (!objectiveDone(quest, 'receive_network_key')) {
+    return 'Забери ключ Сети — зашифрованный канал связи';
+  }
+  return null;
+}
+
+/** Солныш spine — comfort → wine roof → relocation. */
+export function getSolnyshSpineHint(currentSceneId: string): string | null {
+  const comfort = findActiveQuest('solnysh_comfort');
+  if (comfort) {
+    if (!objectiveDone(comfort, 'talk_solnysh')) {
+      return currentSceneId === 'volodka_corridor' || currentSceneId === 'solnysh_room'
+        ? 'Подойди к Солныш и поговори [E]'
+        : 'Солныш в коридоре или в своей комнате — найди её и поговори';
+    }
+    if (!objectiveDone(comfort, 'comfort_solnysh')) {
+      return 'Выслушай Солныш и поддержи её — выбери тёплый ответ';
+    }
+  }
+
+  const wine = findActiveQuest('solnysh_roof_wine');
+  if (wine) {
+    if (!objectiveDone(wine, 'find_wine')) {
+      return currentSceneId === 'solnysh_room'
+        ? 'Обыщи шкаф в комнате Солныш — там вино Лёни'
+        : 'Вино спрятано в комнате Солныш — загляни в шкаф';
+    }
+    if (!objectiveDone(wine, 'offer_wine')) {
+      return 'Предложи Алине вино и вечер на крыше [E]';
+    }
+    if (!objectiveDone(wine, 'roof_toast')) {
+      return 'Поднимись на крышу вместе с Солныш';
+    }
+  }
+
+  const relocation = findActiveQuest('solnysh_relocation');
+  if (relocation) {
+    if (!objectiveDone(relocation, 'discuss_move')) {
+      return 'После крыши спроси Солныш о переезде [E]';
+    }
+    if (!objectiveDone(relocation, 'support_move')) {
+      return 'Поддержи решение о другой стране — она ждёт твоего слова';
+    }
+  }
+
+  return null;
+}

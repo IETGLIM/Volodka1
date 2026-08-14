@@ -1,0 +1,572 @@
+/* ══════════════════════════════════════════════════════════════
+   NotificationToasts — stat-change floating toasts
+   ══════════════════════════════════════════════════════════════ */
+
+.notification-toast-container {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.notification-toast-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 2px solid var(--toast-border-color);
+  background: linear-gradient(135deg, rgba(10, 10, 20, 0.92) 0%, rgba(5, 8, 18, 0.88) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--toast-shadow), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Scanline overlay on toast cards ─── */
+.notification-toast-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: var(--z-decor-scanline);
+  border-radius: inherit;
+}
+
+/* ─── Glowing left-border accent via pseudo-element ─── */
+.notification-toast-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--toast-border-color);
+  box-shadow: 0 0 6px var(--toast-border-color), 0 0 12px var(--toast-border-color);
+  filter: blur(1px);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: var(--z-decor-bracket);
+  animation: toast-border-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes toast-border-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+.notification-toast-card[data-hovered='true'],
+.notification-toast-card:focus-visible {
+  box-shadow: var(--toast-shadow-hover);
+}
+
+.notification-toast-card[data-toast-type='karma'] {
+  --toast-border-color: var(--cyber-amber);
+  --toast-text-accent: var(--cyber-amber);
+  --toast-icon-bg: rgba(255, 171, 0, 0.15);
+  --toast-shadow: 0 0 16px rgba(var(--cyber-amber-rgb), 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px rgba(var(--cyber-amber-rgb), 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-card[data-toast-type='energy'] {
+  --toast-border-color: var(--toast-energy-border, #16a34a);
+  --toast-text-accent: var(--toast-energy-text, #4ade80);
+  --toast-icon-bg: var(--toast-energy-icon-bg, rgba(22, 163, 74, 0.15));
+  --toast-shadow: 0 0 16px var(--toast-energy-glow, rgba(22, 163, 74, 0.4)), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px var(--toast-energy-glow, rgba(22, 163, 74, 0.4)), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-card[data-toast-type='stress'] {
+  --toast-border-color: var(--cyber-rose);
+  --toast-text-accent: var(--cyber-rose);
+  --toast-icon-bg: rgba(255, 23, 68, 0.15);
+  --toast-shadow: 0 0 16px rgba(255, 23, 68, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px rgba(255, 23, 68, 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-card[data-toast-type='skill'] {
+  --toast-border-color: var(--toast-skill-border, #0891b2);
+  --toast-text-accent: var(--toast-skill-text, var(--cyber-cyan));
+  --toast-icon-bg: var(--toast-skill-icon-bg, rgba(8, 145, 178, 0.15));
+  --toast-shadow: 0 0 16px var(--toast-skill-glow, rgba(8, 145, 178, 0.4)), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px var(--toast-skill-glow, rgba(8, 145, 178, 0.4)), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-card[data-toast-type='poem'] {
+  --toast-border-color: var(--cyber-cyan);
+  --toast-text-accent: var(--cyber-cyan);
+  --toast-icon-bg: rgba(0, 229, 255, 0.15);
+  --toast-shadow: 0 0 16px rgba(var(--cyber-cyan-rgb), 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px rgba(var(--cyber-cyan-rgb), 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-card[data-toast-type='quest'] {
+  --toast-border-color: var(--cyber-amber);
+  --toast-text-accent: var(--cyber-amber);
+  --toast-icon-bg: rgba(255, 171, 0, 0.15);
+  --toast-shadow: 0 0 16px rgba(var(--cyber-amber-rgb), 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toast-shadow-hover: 0 0 24px rgba(var(--cyber-amber-rgb), 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.notification-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--toast-icon-bg);
+  color: var(--toast-text-accent);
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.notification-toast-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.notification-toast-message {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.08);
+}
+
+.notification-toast-delta {
+  color: var(--toast-text-accent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SESSION 14: CraftingDiscoveryToast
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Crafting discovery toast base styles ─── */
+.crafting-discovery-toast {
+  position: relative;
+  overflow: hidden;
+  font-family: 'Geist Mono', monospace;
+  isolation: isolate;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VISUAL POLISH: Loading screen, menu, HUD, dialogue transitions
+   ══════════════════════════════════════════════════════════════ */
+
+/* Loading screen fade-in on mount */
+@keyframes loading-screen-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.loading-screen-fade-in {
+  animation: loading-screen-fade-in 0.5s ease-out forwards;
+}
+
+/* Loading spinner subtle pulse glow */
+@keyframes loading-spinner-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgb(var(--cyber-cyan-rgb) / 0.3)); }
+  50% { filter: drop-shadow(0 0 18px rgb(var(--cyber-cyan-rgb) / 0.55)); }
+}
+
+@keyframes crt-sweep {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 100vh, 0); }
+}
+
+.crt-sweep-line {
+  animation: crt-sweep 5s linear infinite;
+  will-change: transform;
+  filter: blur(0.5px);
+  opacity: 0.8;
+}
+
+/* ─── Enhanced loading progress bar — gradient fill with glow ─── */
+@keyframes loading-bar-glow {
+  0%, 100% { box-shadow: 0 0 8px rgb(var(--cyber-cyan-rgb) / 0.3); }
+  50% { box-shadow: 0 0 16px rgb(var(--cyber-cyan-rgb) / 0.5), 0 0 32px rgb(var(--cyber-cyan-rgb) / 0.15); }
+}
+
+.loading-bar-enhanced {
+  animation: loading-bar-glow 2s ease-in-out infinite;
+}
+
+/* ─── Loading screen boot text fade enhancement ─── */
+.loading-screen-fade-in {
+  animation: loading-screen-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Start button cyberpunk styling for PipelineLoadingOverlay ─── */
+.boot-start-btn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cyber-cyan-rgb) / 0.5);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 10, 20, 0.6) 100%);
+  box-shadow:
+    0 0 20px rgb(var(--cyber-cyan-rgb) / 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.boot-start-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(var(--cyber-cyan-rgb) / 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.boot-start-btn:hover {
+  border-color: rgb(var(--cyber-cyan-rgb) / 0.8);
+  box-shadow:
+    0 0 30px rgb(var(--cyber-cyan-rgb) / 0.2),
+    0 0 60px rgb(var(--cyber-cyan-rgb) / 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  text-shadow: 0 0 8px rgb(var(--cyber-cyan-rgb) / 0.5);
+  transform: translateY(-1px);
+}
+
+.boot-start-btn:hover::before {
+  opacity: 1;
+}
+
+.boot-start-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 0 15px rgb(var(--cyber-cyan-rgb) / 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-sweep-line {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCENE TRANSITION: Loading bar pulse + scan-line effects
+   ══════════════════════════════════════════════════════════════ */
+
+/* Pulsing gradient for loading bar — shifts cyan→amber gradient back and forth */
+@keyframes loading-bar-pulse {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Shimmer sweep across the loading bar fill */
+@keyframes loading-bar-shimmer {
+  0% {
+    background-position: 250% 0;
+  }
+  100% {
+    background-position: -250% 0;
+  }
+}
+
+/* Subtle scroll for scan-line overlay — shifts the repeating gradient down */
+@keyframes loading-scanline-scroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 100vh;
+  }
+}
+
+/* Moving scan-line bar — sweeps a bright line down the screen */
+@keyframes loading-scanline-bar {
+  0% {
+    transform: translateY(-10vh);
+  }
+  100% {
+    transform: translateY(110vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar-pulse,
+  .loading-bar-shimmer,
+  .loading-scanline-scroll,
+  .loading-scanline-bar {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ENHANCED TOAST: progress bar + improved glass morphism
+   ══════════════════════════════════════════════════════════════ */
+
+/* Enhanced toast card overrides — deeper glass, stronger border glow */
+.notification-toast-card--enhanced {
+  border-radius: 8px;
+  padding: 10px 14px 12px;
+  background:
+    linear-gradient(135deg,
+      rgba(10, 14, 28, 0.88) 0%,
+      rgba(6, 10, 22, 0.82) 100%);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-left: 3px solid var(--toast-border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  box-shadow:
+    var(--toast-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Type-specific left border accent colors */
+.notification-toast-card[data-toast-type='karma'] {
+  --toast-border-color: var(--cyber-amber);
+}
+.notification-toast-card[data-toast-type='energy'] {
+  --toast-border-color: #4ade80;
+}
+.notification-toast-card[data-toast-type='stress'] {
+  --toast-border-color: var(--cyber-rose);
+}
+.notification-toast-card[data-toast-type='skill'] {
+  --toast-border-color: var(--cyber-cyan);
+}
+.notification-toast-card[data-toast-type='poem'] {
+  --toast-border-color: var(--cyber-cyan);
+}
+.notification-toast-card[data-toast-type='quest'] {
+  --toast-border-color: var(--cyber-amber);
+}
+.notification-toast-card[data-toast-type='crafting'] {
+  --toast-border-color: var(--cyber-matrix);
+}
+
+/* Progress bar track — sits at the bottom of the toast card */
+.notification-toast-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 3px; /* offset for left border */
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0 0 5px 0;
+  overflow: hidden;
+}
+
+/* Progress bar fill — shrinks from right to left as time elapses */
+.notification-toast-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  opacity: 0.6;
+  will-change: width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-toast-progress-fill {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOADING SCREEN: Particle background
+   ══════════════════════════════════════════════════════════════ */
+
+@keyframes loading-particle-drift {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: var(--loading-particle-opacity, 0.1);
+  }
+  90% {
+    opacity: var(--loading-particle-opacity, 0.1);
+  }
+  100% {
+    transform: translateY(-10vh) translateX(calc(var(--loading-particle-drift-x, 20px)));
+    opacity: 0;
+  }
+}
+
+.loading-particle {
+  position: absolute;
+  bottom: -4px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: hsl(
+    var(--loading-particle-hue, 180),
+    80%,
+    65%
+  );
+  box-shadow: 0 0 4px hsl(
+      var(--loading-particle-hue, 180),
+      80%,
+      65%
+    );
+  animation: loading-particle-drift
+    var(--loading-particle-duration, 10s)
+    linear
+    var(--loading-particle-delay, 0s)
+    infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-particle {
+    animation: none;
+    display: none;
+  }
+
+  .loading-milestone-burst,
+  .loading-retry-btn {
+    animation: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: LOADING SCREEN POLISH — Milestones, retry, fade-out
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Milestone burst effect (50%, 75%, 100%) ── */
+@keyframes loading-milestone-flash {
+  0% { box-shadow: 0 0 0 0 rgb(var(--cyber-cyan-rgb) / 0.6); }
+  50% { box-shadow: 0 0 30px 10px rgb(var(--cyber-cyan-rgb) / 0.3); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes loading-milestone-ring-expand {
+  0% { transform: scale(0.5); opacity: 0.8; border-width: 3px; }
+  100% { transform: scale(2.5); opacity: 0; border-width: 1px; }
+}
+
+.loading-milestone-burst {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  pointer-events: none;
+  animation: loading-milestone-flash 0.8s ease-out forwards;
+}
+
+.loading-milestone-burst::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 8px;
+  border: 2px solid rgb(var(--cyber-cyan-rgb) / 0.5);
+  animation: loading-milestone-ring-expand 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+.loading-milestone-text {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgb(var(--cyber-cyan-rgb));
+  text-shadow: 0 0 12px rgb(var(--cyber-cyan-rgb) / 0.6), 0 0 24px rgb(var(--cyber-cyan-rgb) / 0.3);
+}
+
+/* ── Retry button — appears after 10s stall ── */
+.loading-retry-btn {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: rgb(var(--cyber-cyan-rgb) / 0.9);
+  background: rgba(0, 8, 20, 0.7);
+  border: 1px solid rgb(var(--cyber-cyan-rgb) / 0.3);
+  border-radius: 6px;
+  padding: 10px 20px;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  animation: loading-retry-pulse 2s ease-in-out infinite;
+}
+
+@keyframes loading-retry-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgb(var(--cyber-cyan-rgb) / 0.15); }
+  50% { box-shadow: 0 0 16px rgb(var(--cyber-cyan-rgb) / 0.3), 0 0 32px rgb(var(--cyber-cyan-rgb) / 0.1); }
+}
+
+.loading-retry-btn:hover {
+  background: rgba(0, 30, 40, 0.8);
+  border-color: rgb(var(--cyber-cyan-rgb) / 0.6);
+  box-shadow: 0 0 20px rgb(var(--cyber-cyan-rgb) / 0.3);
+  text-shadow: 0 0 8px rgb(var(--cyber-cyan-rgb) / 0.5);
+}
+
+.loading-retry-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── Smooth fade-out transition from loading to gameplay ── */
+@keyframes loading-fade-out {
+  0% { opacity: 1; filter: brightness(1); }
+  30% { opacity: 1; filter: brightness(1.1); }
+  100% { opacity: 0; filter: brightness(1.3); }
+}
+
+.loading-screen-fade-out {
+  animation: loading-fade-out 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+/* ── Background pre-render hint: 3D scene renders behind overlay ── */
+.loading-bg-prerender {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-loading, 100) - 1);
+  opacity: 0;
+  transition: opacity 1s ease-in;
+  pointer-events: none;
+}
+
+.loading-bg-prerender.visible {
+  opacity: 1;
+}
+
+/* Mobile responsive for loading polish */
+@media (max-width: 768px) {
+  .loading-retry-btn {
+    font-size: 14px;
+    padding: 12px 24px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .loading-milestone-text {
+    font-size: 13px;
+  }
+}
