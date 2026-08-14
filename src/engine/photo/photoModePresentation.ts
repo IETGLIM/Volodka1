@@ -1,0 +1,225 @@
+import type { SceneId } from '@/config/sceneDefinitions';
+import { SCENE_CONFIG } from '@/config/scenes';
+import {
+  PHOTO_FILTER_BAKE_CSS,
+  PHOTO_FILTER_LABELS,
+  PHOTO_FLASH_DURATION_MS,
+  PHOTO_MODE_LABELS,
+  type PhotoFilterPreset,
+} from '@/engine/photo/photoModeConstants';
+
+export type CanvasCaptureResult =
+  | { ok: true; dataUrl: string }
+  | { ok: false; reason: 'missing_canvas' | 'tainted_canvas' | 'unknown' };
+
+export function resolveSceneDisplayName(sceneId: SceneId): string {
+  return SCENE_CONFIG[sceneId]?.name ?? `${PHOTO_MODE_LABELS.unknownScene} (${sceneId})`;
+}
+
+export function formatGameTimeOfDay(timeOfDay: number): string {
+  const hours = Math.floor(timeOfDay).toString().padStart(2, '0');
+  const minutes = ((timeOfDay % 1) * 60 | 0).toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+export function formatRealClockTime(date = new Date()): string {
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+export function captureWebGlCanvasScreenshot(): CanvasCaptureResult {
+  try {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) {
+      return { ok: false, reason: 'missing_canvas' };
+    }
+    const dataUrl = canvas.toDataURL('image/png');
+    return { ok: true, dataUrl };
+  } catch {
+    return { ok: false, reason: 'tainted_canvas' };
+  }
+}
+
+export function getPhotoOverlayTransition(reducedMotion: boolean) {
+  return reducedMotion ? { duration: 0 } : { duration: 0.3, ease: 'easeOut' as const };
+}
+
+export function getPhotoHintTransition(reducedMotion: boolean) {
+  return reducedMotion
+    ? { duration: 0 }
+    : { duration: 0.4, delay: 0.2 };
+}
+
+export function getPhotoPreviewTransition(reducedMotion: boolean) {
+  return reducedMotion
+    ? { duration: 0 }
+    : { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] };
+}
+
+export function getBlinkDotMotion(reducedMotion: boolean) {
+  if (reducedMotion) {
+    return { animate: undefined, transition: { duration: 0 } };
+  }
+  return {
+    animate: { opacity: [1, 0.2, 1] },
+    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' as const },
+  };
+}
+
+export function getFlashOverlayTransition(reducedMotion: boolean) {
+  if (reducedMotion) {
+    return { duration: 0 };
+  }
+  return { duration: PHOTO_FLASH_DURATION_MS / 1000, ease: 'easeOut' as const };
+}
+
+export function getCaptureFailureMessage(): string {
+  return PHOTO_MODE_LABELS.captureFailed;
+}
+
+export function getPhotoFilterTitle(filter: PhotoFilterPreset): string {
+  if (filter === 'noir') return PHOTO_MODE_LABELS.titleNoir;
+  if (filter === 'normal') return PHOTO_MODE_LABELS.title;
+  return PHOTO_FILTER_LABELS[filter];
+}
+
+/** Whether the filter desaturates the scene (noir / vintage). */
+export function isPhotoFilterDesaturated(filter: PhotoFilterPreset): boolean {
+  return filter === 'noir' || filter === 'vintage_film';
+}
+
+/**
+ * @deprecated Use applyPhotoFilterToDataUrl instead.
+ * Kept for backward compat with tests / older imports.
+ */
+export function applyNoirGradeToDataUrl(dataUrl: string): Promise<string> {
+  return applyPhotoFilterToDataUrl(dataUrl, 'noir');
+}
+
+/** Bake any photo filter into a captured PNG data URL.
+ *  Safe no-op on failure — resolves with the original dataUrl. */
+export function applyPhotoFilterToDataUrl(
+  dataUrl: string,
+  filter: PhotoFilterPreset,
+): Promise<string> {
+  if (filter === 'normal' || typeof document === 'undefined') return Promise.resolve(dataUrl);
+
+  const cssFilter = PHOTO_FILTER_BAKE_CSS[filter] ?? 'none';
+
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(dataUrl); return; }
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+          if (!w || !h) { resolve(dataUrl); return; }
+          canvas.width = w;
+          canvas.height = h;
+          ctx.filter = cssFilter;
+          ctx.drawImage(img, 0, 0);
+
+          // Noir vignette
+          if (filter === 'noir') {
+            ctx.filter = 'none';
+            const gradient = ctx.createRadialGradient(
+              w * 0.5, h * 0.5, Math.min(w, h) * 0.25,
+              w * 0.5, h * 0.5, Math.max(w, h) * 0.72,
+            );
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.45)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+          }
+
+          resolve(canvas.toDataURL('image/png'));
+        } catch { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    } catch { resolve(dataUrl); }
+  });
+}
+
+/** Capture WebGL canvas and bake the active filter into the still. */
+export async function capturePhotoStill(
+  filter: PhotoFilterPreset,
+): Promise<CanvasCaptureResult> {
+  const result = captureWebGlCanvasScreenshot();
+  if (!result.ok || filter === 'normal') return result;
+  return { ok: true, dataUrl: await applyPhotoFilterToDataUrl(result.dataUrl, filter) };
+}
+
+export type PhotoExportResult =
+  | { ok: true; method: 'download' | 'share' }
+  | { ok: false; reason: 'invalid_data' | 'unknown' };
+
+function photoFilename(filter: PhotoFilterPreset, date = new Date()): string {
+  const stamp = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+    '-',
+    String(date.getHours()).padStart(2, '0'),
+    String(date.getMinutes()).padStart(2, '0'),
+    String(date.getSeconds()).padStart(2, '0'),
+  ].join('');
+  return `volodka-${filter}-${stamp}.png`;
+}
+
+/** Download a captured still (filter already baked into dataUrl). */
+export function downloadPhotoStill(
+  dataUrl: string,
+  filter: PhotoFilterPreset = 'normal',
+): PhotoExportResult {
+  if (!dataUrl.startsWith('data:image/')) {
+    return { ok: false, reason: 'invalid_data' };
+  }
+  try {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = photoFilename(filter);
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { ok: true, method: 'download' };
+  } catch {
+    return { ok: false, reason: 'unknown' };
+  }
+}
+
+/**
+ * Share captured still via Web Share API when available; otherwise download.
+ * dataUrl should already have baked filter grade.
+ */
+export async function shareOrDownloadPhotoStill(
+  dataUrl: string,
+  filter: PhotoFilterPreset = 'normal',
+): Promise<PhotoExportResult> {
+  if (!dataUrl.startsWith('data:image/')) {
+    return { ok: false, reason: 'invalid_data' };
+  }
+
+  const filename = photoFilename(filter);
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function' && typeof navigator.canShare === 'function') {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], filename, { type: blob.type || 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: filter === 'noir' ? 'VOLODKA Noir' : 'VOLODKA',
+        });
+        return { ok: true, method: 'share' };
+      }
+    }
+  } catch {
+    // Fall through to download (user cancel / unsupported).
+  }
+
+  return downloadPhotoStill(dataUrl, filter);
+}

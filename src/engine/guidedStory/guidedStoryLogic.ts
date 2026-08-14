@@ -1,0 +1,571 @@
+import { isExploreHubNode } from '@/shared/exploreHubNodes';
+import { resolveCanonicalNpcId } from '@/shared/npcIdAliases';
+import type {
+  GuidedStoryDeps,
+  GuidedStoryPathConfig,
+  GuidedStorySnapshot,
+  GuidedStorySpineState,
+  GuidanceInfo,
+  QuestDefinition,
+  QuestObjective,
+} from '@/engine/guidedStory/guidedStoryTypes';
+import { areQuestDependenciesMet } from '@/shared/quest/questDependencies';
+import { getVisitedNodeSet } from '@/shared/visitedNodesIndex';
+
+export function getActForNode(nodeId: string, path: GuidedStoryPathConfig): number {
+  const direct = path.actTransitions.find((t) => t.entryNodeId === nodeId);
+  if (direct) return direct.act;
+
+  const spineIdx = path.storySpine.indexOf(nodeId);
+  if (spineIdx < 0) return 1;
+
+  for (let i = path.actTransitions.length - 1; i >= 0; i--) {
+    const transIdx = path.storySpine.indexOf(path.actTransitions[i].entryNodeId);
+    if (transIdx >= 0 && spineIdx >= transIdx) return path.actTransitions[i].act;
+  }
+  return 1;
+}
+
+export function getActTransition(path: GuidedStoryPathConfig, act: number) {
+  return path.actTransitions.find((t) => t.act === act);
+}
+
+export function syncSpineStateFromSnapshot(
+  snapshot: GuidedStorySnapshot,
+  path: GuidedStoryPathConfig,
+): GuidedStorySpineState {
+  const state: GuidedStorySpineState = {
+    currentStepIndex: 0,
+    currentQuestSpineIndex: 0,
+    lastAdvancedToAct: snapshot.currentAct,
+  };
+
+  const visitedSet = getVisitedNodeSet(snapshot.visitedNodes);
+
+  for (let i = path.storySpine.length - 1; i >= 0; i--) {
+    if (visitedSet.has(path.storySpine[i])) {
+      state.currentStepIndex = i + 1;
+      break;
+    }
+  }
+
+  for (let i = 0; i < path.questSpine.length; i++) {
+    const questId = path.questSpine[i];
+    const questState = snapshot.quests.find((q) => q.questId === questId);
+    if (questState?.status === 'completed') {
+      state.currentQuestSpineIndex = i + 1;
+    } else if (questState?.status === 'active') {
+      state.currentQuestSpineIndex = i;
+      break;
+    } else {
+      break;
+    }
+  }
+
+  return state;
+}
+
+/** Returns next step index, or null when spine should not advance.
+ *  Allows skipping ahead when a visited node appears later in the spine
+ *  (e.g. non-golden act5 branch entries that converge to the same epilogue). */
+export function resolveStorySpineAdvance(
+  visitedNodeId: string,
+  currentStepIndex: number,
+  path: GuidedStoryPathConfig,
+): number | null {
+  const nodeIndex = path.storySpine.indexOf(visitedNodeId);
+  if (nodeIndex < 0) return null;
+  // Node already passed — don't go backwards.
+  if (nodeIndex < currentStepIndex) return null;
+  // Explore hub nodes at the current step must not self-advance.
+  if (isExploreHubNode(visitedNodeId) && nodeIndex + 1 <= currentStepIndex) return null;
+  // Advance to just past the visited node (skips any unvisited intermediate variants).
+  return nodeIndex + 1;
+}
+
+export function pickQuestFromSpine(
+  candidates: readonly QuestDefinition[],
+  currentQuestSpineIndex: number,
+  snapshot: GuidedStorySnapshot,
+  path: GuidedStoryPathConfig,
+  getQuestDefinitionById: (id: string) => QuestDefinition | undefined,
+): QuestDefinition | null {
+  const candidateIds = new Set(candidates.map((d) => d.id));
+
+  for (let i = currentQuestSpineIndex; i < path.questSpine.length; i++) {
+    const questId = path.questSpine[i];
+    if (!candidateIds.has(questId)) continue;
+
+    const def = getQuestDefinitionById(questId);
+    if (!def) continue;
+
+    const questState = snapshot.quests.find((q) => q.questId === def.id);
+    if (questState?.status === 'completed') continue;
+    return def;
+  }
+
+  return null;
+}
+
+export function buildGuidanceFromObjective(
+  obj: QuestObjective,
+  questDef: QuestDefinition,
+  act: number,
+  path: GuidedStoryPathConfig,
+  findNpcById: (id: string) => { name: string } | undefined,
+): GuidanceInfo {
+  let objectiveType: GuidanceInfo['objectiveType'] = 'complete_quest';
+  const targetId = obj.target ?? obj.id;
+  let objectiveText = obj.description;
+
+  switch (obj.type) {
+    case 'npc_talked': {
+      objectiveType = 'talk_to_npc';
+      const npc = obj.target ? findNpcById(obj.target) : undefined;
+      if (npc) objectiveText = `Поговори с ${npc.name}`;
+      break;
+    }
+    case 'location_visited':
+      objectiveType = 'visit_location';
+      break;
+    case 'item_collected':
+    case 'poem_collected':
+      objectiveType = 'collect_item';
+      break;
+    default:
+      objectiveType = 'complete_quest';
+  }
+
+  return {
+    objectiveText,
+    objectiveType,
+    targetId,
+    urgency: questDef.questType === 'main' ? 'required' : 'recommended',
+    actNumber: act,
+    chapterTitle: path.actChapterTitles[act] ?? `Акт ${act}`,
+  };
+}
+
+function nodeToReadableText(
+  nodeId: string,
+  path: GuidedStoryPathConfig,
+  findNpcById: (id: string) => { name: string } | undefined,
+): string {
+  const hint = path.branchHints[nodeId];
+  if (hint) return hint;
+
+  const mappedNpcId = path.getNpcIdForStoryNode(nodeId);
+  if (mappedNpcId) {
+    const npc = findNpcById(mappedNpcId);
+    if (npc) return `Найди ${npc.name}`;
+  }
+
+  const sceneLabel = path.storyNodeToSceneLabel[nodeId];
+  if (sceneLabel) return `Отправляйся в ${sceneLabel}`;
+
+  return `Продолжай путь: ${nodeId.replace(/_/g, ' ')}`;
+}
+
+function inferObjectiveType(
+  nodeId: string,
+  path: GuidedStoryPathConfig,
+): GuidanceInfo['objectiveType'] {
+  if (path.getNpcIdForStoryNode(nodeId)) return 'talk_to_npc';
+  return path.storyNodeObjectiveType[nodeId] ?? 'complete_quest';
+}
+
+export function deriveObjectiveFromStep(
+  stepIndex: number,
+  spineState: Pick<GuidedStorySpineState, 'currentQuestSpineIndex'>,
+  deps: GuidedStoryDeps,
+): GuidanceInfo | null {
+  const { path } = deps;
+  if (stepIndex >= path.storySpine.length) return null;
+
+  const nodeId = path.storySpine[stepIndex];
+  const act = getActForNode(nodeId, path);
+  const hint = path.branchHints[nodeId];
+  const snapshot = deps.getSnapshot();
+
+  const questDef = deps.graph.findQuestForNode(nodeId, spineState.currentQuestSpineIndex);
+  if (questDef) {
+    const questState = snapshot.quests.find((q) => q.questId === questDef.id);
+
+    if (questState?.status === 'active') {
+      const nextObj = questDef.objectives.find((o) => !questState.objectives[o.id]);
+      if (nextObj) {
+        return buildGuidanceFromObjective(nextObj, questDef, act, path, deps.npc.findNpcById);
+      }
+    }
+
+    return {
+      objectiveText: hint ?? `Прими задание: ${questDef.title}`,
+      objectiveType: 'complete_quest',
+      targetId: questDef.id,
+      urgency: questDef.questType === 'main' ? 'required' : 'recommended',
+      actNumber: act,
+      chapterTitle: path.actChapterTitles[act] ?? `Акт ${act}`,
+    };
+  }
+
+  return {
+    objectiveText: hint ?? nodeToReadableText(nodeId, path, deps.npc.findNpcById),
+    objectiveType: inferObjectiveType(nodeId, path),
+    targetId: nodeId,
+    urgency: 'recommended',
+    actNumber: act,
+    chapterTitle: path.actChapterTitles[act] ?? `Акт ${act}`,
+  };
+}
+
+export function getCurrentGuidance(
+  spineState: GuidedStorySpineState,
+  deps: GuidedStoryDeps,
+): GuidanceInfo | null {
+  const snapshot = deps.getSnapshot();
+  const { path } = deps;
+
+  for (let i = 0; i < path.questSpine.length; i++) {
+    const questId = path.questSpine[i];
+    const questState = snapshot.quests.find((q) => q.questId === questId);
+
+    if (questState?.status === 'active') {
+      const questDef = deps.graph.getQuestDefinitionById(questId);
+      if (!questDef) continue;
+
+      const nextObj = questDef.objectives.find((o) => !questState.objectives[o.id]);
+      if (nextObj) {
+        const act = questDef.act ?? getActForNode(path.storySpine[spineState.currentStepIndex] ?? '', path);
+        return buildGuidanceFromObjective(nextObj, questDef, act, path, deps.npc.findNpcById);
+      }
+    }
+  }
+
+  return deriveObjectiveFromStep(spineState.currentStepIndex, spineState, deps);
+}
+
+export function canStartQuest(questId: string, deps: GuidedStoryDeps): boolean {
+  const snapshot = deps.getSnapshot();
+  const existing = snapshot.quests.find((q) => q.questId === questId);
+  if (existing && existing.status !== 'inactive') return false;
+
+  const def = deps.graph.getQuestDefinitionById(questId);
+  if (!def) return false;
+
+  if (def.requiresQuests) {
+    const depResult = areQuestDependenciesMet(
+      questId,
+      snapshot.quests as readonly import('@/shared/types/game').QuestState[],
+      (id) => deps.graph.getQuestDefinitionById(id),
+    );
+    if (!depResult.met) return false;
+  }
+
+  if (def.requiredFlag && !snapshot.flags[def.requiredFlag]) return false;
+
+  if (def.requiredPoem && !snapshot.collectedPoems.includes(def.requiredPoem)) return false;
+
+  const questAct = def.act ?? 1;
+  if (questAct > snapshot.currentAct) return false;
+
+  return true;
+}
+
+export function findNpcForQuest(questDef: QuestDefinition): string | undefined {
+  if (questDef.questGiverNpcId) return resolveCanonicalNpcId(questDef.questGiverNpcId);
+  const npcObj = questDef.objectives.find((o) => o.type === 'npc_talked');
+  return npcObj?.target ? resolveCanonicalNpcId(npcObj.target) : undefined;
+}
+
+/** Story nodes where network_initiation should be active even if triggerQuest was skipped. */
+const NETWORK_INITIATION_ACTIVATION_NODES = new Set([
+  'act2_maria_meeting_place',
+  'act2_network_initiation',
+  'act2_network_oath',
+  'act2_network_hesitation',
+]);
+
+/** Progress flags that imply network_initiation should be tracked. */
+const NETWORK_INITIATION_PROGRESS_FLAGS = [
+  'recited_poem_initiation',
+  'network_oath_taken',
+  'network_joined',
+] as const;
+
+const DMITRY_DEFECTION_ACTIVATION_NODES = new Set([
+  'act2_dmitry_contact',
+  'act2_dmitry_office_meeting',
+  'act2_safehouse_message',
+]);
+
+const DMITRY_DEFECTION_PROGRESS_FLAGS = [
+  'dmitry_meeting_agreed',
+  'contacted_dmitry_network',
+] as const;
+
+const CAFE_SAFEHOUSE_ACTIVATION_NODES = new Set([
+  'act2_barista_revealed',
+  'act2_safehouse_agreed',
+  'act2_safehouse_terminal',
+  'act2_safehouse_message',
+  'act2_vault_revealed',
+]);
+
+const CAFE_SAFEHOUSE_PROGRESS_FLAGS = [
+  'cafe_safehouse_agreed',
+  'vault_protect_vowed',
+  'safehouse_terminal_installed',
+] as const;
+
+const VAULT_KEY_FRAGMENTS_ACTIVATION_NODES = new Set([
+  'act2_vault_revealed',
+  'act2_safehouse_message',
+  'act2_network_oath',
+]);
+
+const VAULT_KEY_FRAGMENTS_PROGRESS_FLAGS = [
+  'vault_access_granted',
+  'vault_protect_vowed',
+  'guild_vault_fragment_found',
+  'maria_vault_fragment_given',
+  'neutral_vault_fragment_found',
+] as const;
+
+const POETRY_SMUGGLING_ACTIVATION_NODES = new Set([
+  'street_bench',
+  'act2_closing',
+]);
+
+const POETRY_SMUGGLING_PROGRESS_FLAGS = [
+  'cafe_safehouse_established',
+  'poetry_stash_retrieved',
+  'poems_smuggled',
+] as const;
+
+interface SpineQuestReconcileRule {
+  questId: string;
+  activationNodes: ReadonlySet<string>;
+  progressFlags: readonly string[];
+}
+
+const NIGHT_CITY_CALL_ACTIVATION_NODES = new Set([
+  'go_to_cafe',
+  'street_bench',
+  'street_bench_view',
+  'street_guild_pulse',
+  'cafe_enter',
+  'kitchen_window',
+  'night_city_call_start',
+]);
+
+const NIGHT_CITY_CALL_PROGRESS_FLAGS = [
+  'going_to_cafe',
+  'night_city_pulse_felt',
+  'night_city_call_done',
+] as const;
+
+const MARIA_CONNECTION_ACTIVATION_NODES = new Set([
+  'maria_curious',
+  'maria_chip_trust',
+  'street_bench_view',
+  'street_alley_shadow',
+]);
+
+const MARIA_CONNECTION_PROGRESS_FLAGS = [
+  'met_maria',
+  'accepted_maria_chip',
+  'read_maria_poem',
+  'maria_connection_done',
+  'spotted_maria',
+] as const;
+
+const CAFE_STREET_WHISPER_ACTIVATION_NODES = new Set([
+  'cafe_enter',
+  'cafe_barista',
+  'cafe_barista_victoria_whisper',
+  'cafe_explore_mode',
+  'go_to_cafe',
+]);
+
+const CAFE_STREET_WHISPER_PROGRESS_FLAGS = [
+  'barista_maria_hint',
+  'spotted_maria',
+  'cafe_street_whisper_done',
+] as const;
+
+const CHIP_CAFE_CLEARANCE_ACTIVATION_NODES = new Set([
+  'maria_chip_trust',
+  'cafe_enter',
+  'cafe_barista',
+  'cafe_chip_resonance',
+  'cafe_guild_clearance',
+  'office_lobby_arrival',
+  'cafe_explore_mode',
+  'cafe_special_coffee',
+]);
+
+const CHIP_CAFE_CLEARANCE_PROGRESS_FLAGS = [
+  'chip_cafe_returned',
+  'barista_chip_resonance',
+  'guild_summons_received',
+  'chip_cafe_clearance_done',
+  'read_maria_poem',
+  'accepted_maria_chip',
+] as const;
+
+const OFFICE_LOBBY_WATCH_ACTIVATION_NODES = new Set([
+  'office_lobby_arrival',
+  'office_alexander',
+  'office_explore_mode',
+  'office_colleague',
+]);
+
+const OFFICE_LOBBY_WATCH_PROGRESS_FLAGS = [
+  'chip_office_resonance',
+  'incident_bulletin_read',
+  'lobby_colleague_noticed',
+  'office_lobby_watch_done',
+] as const;
+
+const CODE_POEM_AFTERMATH_ACTIVATION_NODES = new Set([
+  'fix_success',
+  'office_poem_aftermath',
+  'office_colleague',
+  'office_colleague_vault_whisper',
+  'colleague_persuasion_line',
+  'start_diagnosis',
+  'office_alexander',
+]);
+
+const CODE_POEM_AFTERMATH_PROGRESS_FLAGS = [
+  'found_first_poem',
+  'guild_poem_pressure',
+  'vault_rumor_heard',
+  'code_poem_aftermath_done',
+  'thread_lore_4729',
+  'read_poem_1',
+] as const;
+
+const FRIDAY_SPLEEN_ACTIVATION_NODES = new Set([
+  'balcony_thought',
+  'friday_arrives',
+  'friday_spleen_night',
+  'cafe_albert_friday_bridge',
+  'colleague_persuasion_line',
+  'act2_transition',
+]);
+
+const FRIDAY_SPLEEN_PROGRESS_FLAGS = [
+  'left_office_after_vault',
+  'friday_spleen_written',
+  'friday_albert_bridge_heard',
+  'friday_spleen_done',
+] as const;
+
+const SPINE_QUEST_RECONCILE_RULES: SpineQuestReconcileRule[] = [
+  {
+    questId: 'night_city_call',
+    activationNodes: NIGHT_CITY_CALL_ACTIVATION_NODES,
+    progressFlags: NIGHT_CITY_CALL_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'maria_connection',
+    activationNodes: MARIA_CONNECTION_ACTIVATION_NODES,
+    progressFlags: MARIA_CONNECTION_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'cafe_street_whisper',
+    activationNodes: CAFE_STREET_WHISPER_ACTIVATION_NODES,
+    progressFlags: CAFE_STREET_WHISPER_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'chip_cafe_clearance',
+    activationNodes: CHIP_CAFE_CLEARANCE_ACTIVATION_NODES,
+    progressFlags: CHIP_CAFE_CLEARANCE_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'office_lobby_watch',
+    activationNodes: OFFICE_LOBBY_WATCH_ACTIVATION_NODES,
+    progressFlags: OFFICE_LOBBY_WATCH_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'code_poem_aftermath',
+    activationNodes: CODE_POEM_AFTERMATH_ACTIVATION_NODES,
+    progressFlags: CODE_POEM_AFTERMATH_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'friday_spleen',
+    activationNodes: FRIDAY_SPLEEN_ACTIVATION_NODES,
+    progressFlags: FRIDAY_SPLEEN_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'network_initiation',
+    activationNodes: NETWORK_INITIATION_ACTIVATION_NODES,
+    progressFlags: NETWORK_INITIATION_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'dmitry_defection',
+    activationNodes: DMITRY_DEFECTION_ACTIVATION_NODES,
+    progressFlags: DMITRY_DEFECTION_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'cafe_safehouse',
+    activationNodes: CAFE_SAFEHOUSE_ACTIVATION_NODES,
+    progressFlags: CAFE_SAFEHOUSE_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'vault_key_fragments',
+    activationNodes: VAULT_KEY_FRAGMENTS_ACTIVATION_NODES,
+    progressFlags: VAULT_KEY_FRAGMENTS_PROGRESS_FLAGS,
+  },
+  {
+    questId: 'poetry_smuggling',
+    activationNodes: POETRY_SMUGGLING_ACTIVATION_NODES,
+    progressFlags: POETRY_SMUGGLING_PROGRESS_FLAGS,
+  },
+];
+
+function tryActivateSpineQuest(rule: SpineQuestReconcileRule, deps: GuidedStoryDeps): boolean {
+  const snapshot = deps.getSnapshot();
+
+  const existing = snapshot.quests.find((q) => q.questId === rule.questId);
+  if (existing && existing.status !== 'inactive' && existing.status !== 'failed') {
+    return false;
+  }
+
+  if (!canStartQuest(rule.questId, deps)) return false;
+
+  const visitedSet = getVisitedNodeSet(snapshot.visitedNodes);
+  const reachedActivationNode = [...rule.activationNodes].some((nodeId) => visitedSet.has(nodeId));
+  const hasProgressFlag = rule.progressFlags.some((flag) => snapshot.flags[flag]);
+
+  if (!reachedActivationNode && !hasProgressFlag) return false;
+
+  deps.actions.activateQuest(rule.questId);
+
+  const def = deps.graph.getQuestDefinitionById(rule.questId);
+  if (def) {
+    deps.events.emitQuestAvailable({
+      questId: rule.questId,
+      questTitle: def.title,
+      questType: def.questType,
+      npcId: findNpcForQuest(def),
+    });
+  }
+
+  return true;
+}
+
+/**
+ * Activate spine quests when story progress outpaced explicit triggerQuest effects
+ * (e.g. cafe/barista shortcuts into act2_network_initiation).
+ */
+export function reconcileSpineQuestActivation(deps: GuidedStoryDeps): boolean {
+  let activated = false;
+  for (const rule of SPINE_QUEST_RECONCILE_RULES) {
+    if (tryActivateSpineQuest(rule, deps)) {
+      activated = true;
+    }
+  }
+  return activated;
+}

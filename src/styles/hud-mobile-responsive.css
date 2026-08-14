@@ -1,0 +1,925 @@
+/* ══════════════════════════════════════════════════════════════
+   MOBILE-RESPONSIVE HUD — Breakpoint styles for all HUD elements
+   Ensures the exploration HUD is usable on touch devices (max-width: 768px).
+   Uses CSS custom properties from tokens.css for visual consistency.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile safe area inset helpers ── */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COMPASS HUD — Narrower on mobile, smaller labels
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .compass-hud {
+    /* Compass inherits max-width: 80vw already; tighten further on small phones */
+    top: calc(var(--safe-top) + 38px) !important;
+  }
+
+  .compass-marker span {
+    /* Smaller direction labels on mobile */
+    font-size: 10px !important;
+  }
+
+  .compass-marker span.text-base {
+    font-size: 12px !important;
+  }
+
+  .compass-marker span.text-xs {
+    font-size: 9px !important;
+  }
+
+  .compass-marker span.text-\[10px\] {
+    font-size: 8px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   QUEST MINI TRACKER — Compact on mobile, respect safe areas
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Quest tracker positioned below compass with safe-area padding */
+  [data-exploration-ui][data-testid="active-quest-mini-tracker"],
+  [data-testid="active-quest-mini-tracker"] {
+    font-size: 10px !important;
+    max-width: calc(100vw - 96px) !important; /* clear D-pad + action btns */
+  }
+
+  /* Quest objective text smaller */
+  .quest-objective-text {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Quest type badge smaller */
+  .quest-type-badge {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   QUICK USE BAR — Compact on mobile, lifted above controls
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .quick-use-bar {
+    padding: 4px !important;
+    gap: 4px !important;
+    /* Lift above mobile D-pad/action buttons */
+    bottom: calc(168px + var(--safe-bottom)) !important;
+  }
+
+  .quick-use-slot {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 10px !important;
+    /* Ensure 44px touch target via padding */
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .quick-use-slot-number {
+    font-size: 8px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   QUICK ACCESS TOOLBAR — Compact stat bars on mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Toolbar lifted above quick-use bar + mobile controls */
+  [data-exploration-ui] [class*="quick-access-toolbar"],
+  [data-exploration-ui].quick-access-toolbar-container {
+    padding: 4px 8px !important;
+    gap: 6px !important;
+    bottom: calc(216px + var(--safe-bottom)) !important;
+    font-size: 10px !important;
+  }
+
+  /* Stat bars narrower on mobile */
+  [data-exploration-ui] .stat-bar-w-16,
+  [data-exploration-ui] [style*="w-16"] {
+    width: 48px !important;
+  }
+
+  /* Stat value text smaller */
+  [data-exploration-ui] .text-\[10px\] {
+    font-size: 9px !important;
+  }
+
+  /* Karma ring smaller on mobile */
+  [data-exploration-ui] .karma-ring-container svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POETRY POWER BAR — Compact on mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [data-exploration-ui] [class*="poetry-power"],
+  [data-exploration-ui] [data-testid*="poetry"] {
+    bottom: calc(124px + 168px + var(--safe-bottom)) !important;
+    font-size: 10px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MINIMAP — Smaller on mobile, tucked into corner
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [data-exploration-ui] [class*="minimap"],
+  [data-testid*="minimap"] {
+    transform: scale(0.75) !important;
+    transform-origin: top right !important;
+    right: var(--safe-right) !important;
+    top: calc(var(--safe-top) + 80px) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONTEXTUAL HINT — Lifted above mobile controls
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .hud-filmic-caption,
+  [data-exploration-ui] [class*="contextual-hint"] {
+    bottom: calc(180px + var(--safe-bottom)) !important;
+    font-size: 11px !important;
+    max-width: calc(100vw - 32px) !important;
+    padding: 4px 8px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCENE TOP BAR HUD — Compact, respect safe areas
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [data-testid="scene-top-bar-hud"],
+  [data-exploration-ui][data-testid="scene-top-bar-hud"] {
+    top: var(--safe-top) !important;
+    padding-top: 4px !important;
+  }
+
+  /* Scene context chip — smaller on mobile */
+  [data-testid="scene-context-chip"],
+  .scene-context-chip {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Top bar data ticker hidden on very small screens */
+  @media (max-width: 480px) {
+    [data-testid="top-bar-data-ticker"],
+    .top-bar-data-ticker {
+      display: none !important;
+    }
+  }
+
+  /* Session timer + pedometer — smaller on mobile */
+  .session-play-timer,
+  .footstep-pedometer,
+  .player-coordinates-display {
+    font-size: 8px !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Environment mood indicator — smaller */
+  .environment-mood-indicator {
+    transform: scale(0.85) !important;
+    transform-origin: top right !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NOTIFICATION TOASTS — Repositioned for mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Toast notifications — narrower, stacked tighter */
+  [data-testid*="notification-toast"],
+  .notification-toast-item {
+    max-width: calc(100vw - 24px) !important;
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Achievement popups — above minimap */
+  [class*="achievement-popup"],
+  [data-testid*="achievement"] {
+    right: calc(8px + var(--safe-right)) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* Loot toasts — left column, below top bar + safe area */
+  [class*="loot-toast"],
+  [class*="item-gained"] {
+    left: calc(8px + var(--safe-left)) !important;
+    top: calc(var(--safe-top) + 48px) !important;
+    font-size: 10px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AUTOSAVE INDICATOR — Repositioned for safe area
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [class*="autosave"],
+  [data-testid*="autosave"] {
+    top: calc(var(--safe-top) + 6px) !important;
+    right: calc(var(--safe-right) + 6px) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DIALOGUE / DIEGETIC UI — Bottom padding for mobile controls
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Dialogue renderer / diegetic panels lift above mobile controls */
+  [data-testid="dialogue-renderer"],
+  .diegetic-dialogue-panel,
+  .dialogue-panel {
+    bottom: calc(168px + var(--safe-bottom)) !important;
+    max-width: calc(100vw - 16px) !important;
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+  }
+
+  /* Interaction prompt (E key) — hidden on touch (replaced by mobile action button) */
+  @media (pointer: coarse) {
+    .crosshair-interaction-prompt,
+    [class*="interaction-prompt"],
+    [data-testid*="crosshair"] {
+      display: none !important;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOTTOM HUD STACK — Global lift above mobile controls
+   All bottom-positioned HUD elements get safe-area + controls reserve.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Generic: any fixed-bottom HUD element that's not the mobile controls layer */
+  [data-exploration-ui][style*="bottom"],
+  [data-exploration-ui].fixed {
+    /* Don't override elements that already set their own mobile bottom */
+  }
+
+  /* Moral compass HUD — repositioned */
+  [class*="moral-compass-hud"] {
+    bottom: calc(168px + var(--safe-bottom)) !important;
+    right: calc(var(--safe-right) + 8px) !important;
+  }
+
+  /* Status effects bar — above controls */
+  [class*="status-effects-bar"] {
+    bottom: calc(168px + var(--safe-bottom)) !important;
+  }
+
+  /* Ambient mixer — hide on mobile (not useful without mouse) */
+  [class*="ambient-mixer"],
+  [class*="AmbientSoundMixer"] {
+    display: none !important;
+  }
+
+  /* Photo mode button — repositioned */
+  [class*="photo-mode-btn"] {
+    bottom: calc(180px + var(--safe-bottom)) !important;
+    right: calc(var(--safe-right) + 8px) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE ACTION BUTTONS — Right-side action cluster
+   Glass morphism + neon cyan aesthetic matching ExplorationMobileHud
+   ══════════════════════════════════════════════════════════════ */
+.mobile-action-buttons {
+  position: fixed;
+  bottom: calc(12px + var(--safe-bottom));
+  right: calc(12px + var(--safe-right));
+  z-index: var(--z-mobile-controls);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgb(var(--cyber-cyan-rgb) / 0.35);
+  background: rgba(0, 8, 20, 0.55);
+  color: rgb(var(--cyber-cyan-rgb));
+  user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: auto;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 0 8px rgb(var(--cyber-cyan-rgb) / 0.08),
+    inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-action-btn:active {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgb(var(--cyber-cyan-rgb) / 0.6);
+  box-shadow:
+    0 0 16px rgb(var(--cyber-cyan-rgb) / 0.2),
+    inset 0 0 8px rgb(var(--cyber-cyan-rgb) / 0.05);
+  transform: scale(0.94);
+}
+
+/* Primary interact button — larger, brighter */
+.mobile-action-btn--interact {
+  width: 60px;
+  height: 60px;
+  min-width: 48px;
+  min-height: 48px;
+  border-color: rgb(var(--cyber-cyan-rgb) / 0.5);
+  background: rgba(0, 30, 40, 0.45);
+  box-shadow:
+    0 0 12px rgb(var(--cyber-cyan-rgb) / 0.12),
+    inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-action-btn--interact:active {
+  background: rgba(0, 229, 255, 0.18);
+  border-color: rgb(var(--cyber-cyan-rgb) / 0.8);
+  box-shadow:
+    0 0 24px rgb(var(--cyber-cyan-rgb) / 0.3),
+    inset 0 0 12px rgb(var(--cyber-cyan-rgb) / 0.08);
+}
+
+/* Secondary buttons — smaller */
+.mobile-action-btn--secondary {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+/* Run toggle active state */
+.mobile-action-btn--run-active {
+  border-color: rgb(var(--cyber-amber-rgb) / 0.6);
+  background: rgba(50, 30, 0, 0.45);
+  color: var(--cyber-amber);
+  box-shadow:
+    0 0 10px rgb(var(--cyber-amber-rgb) / 0.15),
+    inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-action-btn--run-active:active {
+  background: rgba(255, 171, 0, 0.18);
+  border-color: rgb(var(--cyber-amber-rgb) / 0.8);
+}
+
+/* Button label (tiny text under icon) */
+.mobile-action-btn__label {
+  font-size: 8px;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--cyber-cyan-rgb) / 0.7);
+  margin-top: 2px;
+  pointer-events: none;
+}
+
+/* Landscape adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-action-buttons {
+    flex-direction: row;
+    bottom: calc(8px + var(--safe-bottom));
+    right: calc(12px + var(--safe-right));
+    gap: 6px;
+  }
+
+  .mobile-action-btn--interact {
+    width: 52px;
+    height: 52px;
+  }
+
+  .mobile-action-btn--secondary {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mobile-action-btn__label {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL: Hide keyboard hints on touch devices
+   ══════════════════════════════════════════════════════════════ */
+@media (pointer: coarse) {
+  /* Hide all [E], [F], [Tab] keyboard shortcut indicators */
+  [data-keyboard-hint]::after,
+  .keycap,
+  [class*="key-hint"],
+  [class*="keyboard-shortcut"] {
+    display: none !important;
+  }
+
+  /* Hide tooltip-cyber hover tooltips on touch (they don't work well) */
+  .tooltip-cyber::after,
+  .cyber-tooltip::after {
+    display: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Z-INDEX STACK: Ensure mobile-controls layer sits correctly
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Mobile controls at 42 — above HUD (10) but below menus/combat */
+  [style*="z-index: 42"],
+  [style*="z-index:42"] {
+    z-index: var(--z-mobile-controls) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PANELS: Responsive adjustments for overlay panels on mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Full-screen panels (inventory, journal, quests, etc.) */
+  [data-panel],
+  [role="dialog"] {
+    max-width: 100vw !important;
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom)) !important;
+    margin-top: var(--safe-top) !important;
+    margin-bottom: var(--safe-bottom) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Panel close buttons — 44px minimum */
+  [data-panel] button[aria-label*="закрыть"],
+  [data-panel] button[aria-label*="close"],
+  [role="dialog"] button[aria-label*="закрыть"],
+  [role="dialog"] button[aria-label*="close"] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COMBAT UI: Mobile touch-friendly adjustments
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (pointer: coarse) {
+  /* Combat action buttons */
+  [data-combat-ui] button,
+  [class*="combat-action"] button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 12px !important;
+  }
+
+  /* Combat log */
+  [class*="combat-log"] {
+    max-height: 120px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DAY/NIGHT INDICATOR + WEATHER — Compact on mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [class*="day-night"],
+  [class*="weather-indicator"] {
+    transform: scale(0.8) !important;
+    transform-origin: top right !important;
+  }
+
+  /* Hide weather/day-night on very small screens to save space */
+  @media (max-width: 480px) {
+    [class*="day-night-cycle"],
+    [class*="weather-alert"] {
+      display: none !important;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOOTER / BOTTOM CHROME — Safe area
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Any fixed-bottom element needs safe area padding */
+  .fixed.bottom-0 {
+    padding-bottom: var(--safe-bottom);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: SAFE AREA INSET VERIFICATION — All HUD edges
+   Ensures every fixed-positioned HUD element respects all
+   four safe-area-inset edges for notched/rounded devices.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Fixed-left elements — add safe-left padding */
+  [data-exploration-ui].fixed-left,
+  [class*="loot-toast"],
+  [class*="item-gained"] {
+    left: calc(8px + var(--safe-left)) !important;
+  }
+
+  /* Fixed-right elements — add safe-right padding */
+  [data-exploration-ui].fixed-right,
+  [class*="achievement-popup"],
+  [data-testid*="achievement"],
+  [class*="moral-compass-hud"] {
+    right: calc(8px + var(--safe-right)) !important;
+  }
+
+  /* Fixed-top elements — ensure safe-top is applied universally */
+  [data-exploration-ui].fixed-top,
+  [data-testid="scene-top-bar-hud"],
+  [class*="autosave"],
+  [data-testid*="autosave"] {
+    top: calc(var(--safe-top) + 6px) !important;
+  }
+
+  /* Any element with safe-bottom already applied — verify left/right too */
+  .quick-use-bar,
+  [class*="quick-access-toolbar"],
+  .quick-access-toolbar-container {
+    left: var(--safe-left) !important;
+    right: var(--safe-right) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: TOUCH TARGET AUDIT — 44x44px minimum
+   Catches all interactive elements that might slip through.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (pointer: coarse) {
+  /* All buttons inside exploration HUD — enforce minimum touch target */
+  [data-exploration-ui] button,
+  [data-exploration-ui] [role="button"],
+  [data-exploration-ui] a,
+  [data-exploration-ui] [tabindex],
+  [data-exploration-ui] [data-testid*="btn"],
+  [data-exploration-ui] [class*="btn"],
+  [data-exploration-ui] [class*="button"] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Compass markers — make tappable for quest navigation */
+  .compass-marker {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Quest mini-tracker — tappable to open quest panel */
+  [data-testid="active-quest-mini-tracker"] {
+    min-height: 44px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Scene context chip — tappable for scene info */
+  [data-testid="scene-context-chip"],
+  .scene-context-chip {
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Day/night and weather indicators — tappable for details */
+  [class*="day-night"],
+  [class*="weather-indicator"] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  /* Notification toasts — dismissable with tap */
+  [data-testid*="notification-toast"],
+  .notification-toast-item {
+    min-height: 44px !important;
+  }
+
+  /* Minimap — tappable to expand */
+  [data-testid*="minimap"] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  /* Session timer / pedometer — tappable for session stats */
+  .session-play-timer,
+  .footstep-pedometer,
+  .player-coordinates-display {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: LANDSCAPE MOBILE LAYOUT FIXES
+   Tighter layout for phones in landscape orientation.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Compass — smaller, left-aligned in landscape */
+  .compass-hud {
+    top: calc(var(--safe-top) + 4px) !important;
+    max-width: 40vw !important;
+  }
+
+  /* Quest tracker — horizontal, next to compass */
+  [data-testid="active-quest-mini-tracker"] {
+    max-width: 35vw !important;
+    font-size: 9px !important;
+  }
+
+  /* Quick use bar — horizontal, bottom center in landscape */
+  .quick-use-bar {
+    flex-direction: row !important;
+    bottom: calc(56px + var(--safe-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  /* Quick access toolbar — left side, vertical in landscape */
+  [data-exploration-ui] [class*="quick-access-toolbar"],
+  [data-exploration-ui].quick-access-toolbar-container {
+    flex-direction: column !important;
+    bottom: auto !important;
+    top: 50% !important;
+    left: calc(4px + var(--safe-left)) !important;
+    transform: translateY(-50%) !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+
+  /* Minimap — bottom-left in landscape, scale down further */
+  [data-exploration-ui] [class*="minimap"],
+  [data-testid*="minimap"] {
+    transform: scale(0.6) !important;
+    transform-origin: bottom left !important;
+    right: auto !important;
+    left: calc(4px + var(--safe-left)) !important;
+    bottom: calc(56px + var(--safe-bottom)) !important;
+    top: auto !important;
+  }
+
+  /* Poetry power bar — bottom center in landscape */
+  [data-exploration-ui] [class*="poetry-power"],
+  [data-exploration-ui] [data-testid*="poetry"] {
+    bottom: calc(100px + var(--safe-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  /* Contextual hint — left side in landscape */
+  .hud-filmic-caption,
+  [data-exploration-ui] [class*="contextual-hint"] {
+    bottom: calc(60px + var(--safe-bottom)) !important;
+    left: calc(56px + var(--safe-left)) !important;
+    max-width: 40vw !important;
+  }
+
+  /* Dialogue panel — centered in landscape, side panels */
+  [data-testid="dialogue-renderer"],
+  .diegetic-dialogue-panel,
+  .dialogue-panel {
+    max-width: 60vw !important;
+    margin: 0 auto !important;
+    bottom: calc(56px + var(--safe-bottom)) !important;
+  }
+
+  /* Combat UI — compact landscape */
+  [data-combat-ui] {
+    padding-left: var(--safe-left) !important;
+    padding-right: var(--safe-right) !important;
+  }
+
+  /* Status effects bar — horizontal in landscape */
+  [class*="status-effects-bar"] {
+    flex-direction: row !important;
+    bottom: calc(56px + var(--safe-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: TABLET BREAKPOINT (768-1024px)
+   Intermediate layout between mobile and desktop.
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet: slightly smaller HUD elements than desktop */
+  .compass-hud {
+    max-width: 60vw !important;
+  }
+
+  /* Quest tracker — wider on tablet */
+  [data-testid="active-quest-mini-tracker"] {
+    max-width: 400px !important;
+    font-size: 11px !important;
+  }
+
+  /* Quick use bar — slightly smaller */
+  .quick-use-bar {
+    gap: 6px !important;
+    bottom: calc(12px + var(--safe-bottom)) !important;
+  }
+
+  .quick-use-slot {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Quick access toolbar — moderate size */
+  [data-exploration-ui] [class*="quick-access-toolbar"],
+  [data-exploration-ui].quick-access-toolbar-container {
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Minimap — slightly smaller on tablet */
+  [data-exploration-ui] [class*="minimap"],
+  [data-testid*="minimap"] {
+    transform: scale(0.85) !important;
+    transform-origin: top right !important;
+  }
+
+  /* Dialogue — comfortable tablet size */
+  [data-testid="dialogue-renderer"],
+  .diegetic-dialogue-panel,
+  .dialogue-panel {
+    max-width: 640px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Panels — constrained width on tablet */
+  [data-panel],
+  [role="dialog"] {
+    max-width: 600px !important;
+    max-height: calc(100dvh - 80px) !important;
+    margin-top: 40px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Combat UI — wider action buttons */
+  [data-combat-ui] button,
+  [class*="combat-action"] button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  /* Weather / day-night — normal scale */
+  [class*="day-night"],
+  [class*="weather-indicator"] {
+    transform: scale(0.9) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: FONT SIZE SCALING — Minimum 14px body text
+   Ensures readability on all screen sizes.
+   Uses clamp() for smooth scaling between breakpoints.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Primary body text — fluid scale, min 14px */
+  body {
+    font-size: clamp(14px, 2.5vw, 16px) !important;
+  }
+
+  /* Dialogue and narrative text — never below 14px */
+  [data-mobile-dialogue="true"] .hud-filmic-quote,
+  [data-mobile-dialogue="true"] .cyber-dialogue-choice,
+  [data-mobile-dialogue="true"] .dialogue-choice-card {
+    font-size: clamp(14px, 3vw, 15px) !important;
+  }
+
+  /* Panel body text — minimum 13px for dense UIs */
+  [data-panel] p,
+  [role="dialog"] p,
+  [data-panel] li,
+  [role="dialog"] li {
+    font-size: clamp(13px, 2.5vw, inherit) !important;
+  }
+
+  /* Font-mono labels (HUD chrome) — minimum 11px */
+  .font-mono {
+    font-size: clamp(11px, 2vw, inherit) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   R11-11c: MOBILE EXPLORATION HUD — STACKED LAYOUT
+   Location name + interaction prompts stacked vertically
+   at the top of the screen for easy thumb reach.
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Exploration HUD info stack — top left, below safe area */
+  [data-exploration-ui] .exploration-hud-info-stack,
+  .exploration-hud-info-stack {
+    position: fixed;
+    top: calc(var(--safe-top) + 40px);
+    left: calc(8px + var(--safe-left));
+    z-index: var(--z-hud, 10);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+    max-width: calc(100vw - 96px);
+  }
+
+  /* Location name inside the stack */
+  .exploration-hud-location,
+  [data-exploration-ui] [class*="location-name"],
+  [class*="scene-context-chip"] {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 8, 20, 0.6);
+    border-radius: 6px;
+    border: 1px solid rgb(var(--cyber-cyan-rgb) / 0.15);
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Interaction prompt inside the stack */
+  .exploration-hud-interaction,
+  [data-exploration-ui] [class*="interaction-hint"],
+  .hud-filmic-caption {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 20, 30, 0.7);
+    border-radius: 6px;
+    border: 1px solid rgb(var(--cyber-cyan-rgb) / 0.25);
+    color: rgb(var(--cyber-cyan-rgb) / 0.9);
+    text-shadow: 0 0 6px rgb(var(--cyber-cyan-rgb) / 0.3);
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Quest objective in the stack */
+  .exploration-hud-quest,
+  [data-testid="active-quest-mini-tracker"] {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 8, 20, 0.55);
+    border-radius: 6px;
+    border: 1px solid rgb(var(--cyber-amber-rgb) / 0.15);
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Landscape: stack moves to left side, horizontal */
+@media (max-width: 768px) and (orientation: landscape) {
+  [data-exploration-ui] .exploration-hud-info-stack,
+  .exploration-hud-info-stack {
+    flex-direction: column;
+    top: calc(var(--safe-top) + 4px);
+    left: calc(4px + var(--safe-left));
+    max-width: 30vw;
+  }
+}
