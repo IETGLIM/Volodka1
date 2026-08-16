@@ -1032,6 +1032,7 @@ function executeEnemyTurn() {
     rng: attackRng,
     currentAct: combatSnap.playerState.progression.currentAct,
     currentLevel: combatSnap.playerState.progression.level,
+    enemyDamageMultiplier: getDifficultyStore().difficultySettings.enemyDamageMultiplier,
     spiritualSkillCount: spiritualLevel,
     perkMods,
   });

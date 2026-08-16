@@ -1,6 +1,6 @@
 # Архитектура — ВОЛОДЬКА RPG
 
-> Карта систем для инженеров. Актуально для **v4.2.42** (`package.json` / `APP_VERSION`).
+> Карта систем для инженеров. Актуально для **v4.2.43** (`package.json` / `APP_VERSION`).
 > AA visual/content density plan: [`docs/AA_QUALITY_ROADMAP.md`](./docs/AA_QUALITY_ROADMAP.md).
 > Sequential uniformity backlog: [`docs/ARCHITECTURE_UNIFICATION.md`](./docs/ARCHITECTURE_UNIFICATION.md).
 >
@@ -123,6 +123,8 @@ Full ordered backlog: [`docs/ARCHITECTURE_UNIFICATION.md`](./docs/ARCHITECTURE_U
 | HUD panels | `orchestrator/types.ts` `PANEL_IDS` | panel stack reducer |
 | Thought Cabinet definitions | `thoughtCabinet.ts` | `THOUGHT_CABINET_ITEMS` / `THOUGHT_CABINET_MAP` |
 | Thought Cabinet state | `playerSlice.thoughtCabinet` | selectors |
+| Difficulty presets/settings | `store/slices/difficultySlice.ts` (`DIFFICULTY_PRESETS`) | `setGameDifficulty`; engine читает через `getDifficultyStore()` |
+| Difficulty ↔ facade sync | `store/combinedState.ts` `SLICE_STORES` | включает `useDifficultyStore` — флаш фасада по смене сложности |
 
 **Правило explore-hub prose:** для `STORY_DEFINED_EXPLORE_HUB_IDS` (act1 trio + cafe/office/kitchen, pier, factory, basement, solnysh) текст toast **не дублируется** в `sceneExploreHubRegistry` — только в story JSON / inline pack. Structure auto-gen skips only `ACT_PACK_STRUCTURE_EXPLORE_HUB_IDS`. Валидатор (`validateContentTruth` в `contentPipelineValidator`) падает, если `hubText` в registry дублирует story node.
 

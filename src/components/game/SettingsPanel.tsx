@@ -163,7 +163,7 @@ function VisualSettingsTab({
                 className="px-2.5 py-1 rounded-md font-mono text-[11px] tracking-wide transition-colors border"
                 style={{
                   color: active ? 'rgb(var(--cyber-cyan-rgb) / 0.95)' : 'rgba(148, 163, 184, 0.65)',
-                  background: active ? 'rgb(var(--cyber-cyan-rgb) / 0.12)' : 'rgba(15, 23, 42, 0.5)',
+                  backgroundColor: active ? 'rgb(var(--cyber-cyan-rgb) / 0.12)' : 'rgba(15, 23, 42, 0.5)',
                   borderColor: active ? 'rgb(var(--cyber-cyan-rgb) / 0.45)' : 'rgba(71, 85, 105, 0.35)',
                 }}
               >
@@ -482,6 +482,7 @@ function SettingsPanelContent({ onClose }: { onClose: () => void }) {
                     <button
                       key={id}
                       type="button"
+                      aria-label={meta.name}
                       onClick={() => {
                         setDifficulty(id);
                         useGameStore.getState().setGameDifficulty(id);
@@ -491,7 +492,7 @@ function SettingsPanelContent({ onClose }: { onClose: () => void }) {
                       }`}
                       style={{
                         color: isActive ? meta.color : 'rgba(148, 163, 184, 0.65)',
-                        background: isActive ? meta.glowColor : 'rgba(15, 23, 42, 0.5)',
+                        backgroundColor: isActive ? meta.glowColor : 'rgba(15, 23, 42, 0.5)',
                         borderColor: isActive ? meta.color + '80' : 'rgba(71, 85, 105, 0.35)',
                         boxShadow: isActive ? `0 0 12px ${meta.glowColor}` : 'none',
                       }}
@@ -622,7 +623,7 @@ function SettingsPanelContent({ onClose }: { onClose: () => void }) {
                   color: isActive
                     ? 'rgb(var(--cyber-cyan-rgb) / 0.9)'
                     : 'rgba(148, 163, 184, 0.5)',
-                  background: isActive
+                  backgroundColor: isActive
                     ? 'rgb(var(--cyber-cyan-rgb) / 0.08)'
                     : 'transparent',
                 }}
@@ -670,16 +671,16 @@ function SettingsPanelContent({ onClose }: { onClose: () => void }) {
             style={{
               color: 'rgba(251, 191, 36, 0.7)',
               borderColor: 'rgba(251, 191, 36, 0.2)',
-              background: 'rgba(251, 191, 36, 0.05)',
+              backgroundColor: 'rgba(251, 191, 36, 0.05)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.4)';
-              e.currentTarget.style.background = 'rgba(251, 191, 36, 0.1)';
+              e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
               e.currentTarget.style.color = 'rgba(251, 191, 36, 0.9)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.2)';
-              e.currentTarget.style.background = 'rgba(251, 191, 36, 0.05)';
+              e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.05)';
               e.currentTarget.style.color = 'rgba(251, 191, 36, 0.7)';
             }}
           >

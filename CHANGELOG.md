@@ -1,4 +1,45 @@
 # Changelog — ВОЛОДЬКА RPG
+## 2026-08-16 — Диагностика, баг-фиксы и стабилизация
+
+Глубокий аудит кодовой базы (15 этапов) и устранение 21 падающего теста + трёх продуктовых багов.
+
+### Боевая система — критический баг двойного масштабирования урона
+
+- **`src/engine/combat/enemyTurn.ts`**: `computeEnemyIncomingDamage` применял сложность **дважды** —
+  сначала legacy-профиль из `localStorage` (`scaleEnemyDamageByDifficulty(…, undefined, …)`), затем
+  глобальный `enemyDamageMultiplier` из стора. На «Сложном» враг бил ×1.875 вместо ×1.5. Убрано
+  legacy-чтение; теперь применяется ровно один множитель, переданный явно через новый параметр
+  `IncomingDamageParams.enemyDamageMultiplier`.
+- Функция вновь **чистая** (как заявлено в её шапке): удалён импорт `@/store/storeBindings`, что также
+  устраняет нарушение слоя «Engine → store» из `ARCHITECTURE.md`.
+- `CombatSystem.executeEnemyTurn` передаёт множитель сложности в чистой точке вызова.
+
+### Стор — сложность не попадала в фасад
+
+- **`src/store/combinedState.ts`**: `useDifficultyStore` отсутствовал в `SLICE_STORES`, поэтому
+  подписка фасада (`subscribeAllStores`) не реагировала на смену сложности — `useGameStore` возвращал
+  устаревшие `difficultySettings` до следующей флаш-операции. Добавлен в список срезов.
+
+### Русский видимый текст (режим фото)
+
+- **`src/engine/photo/photoModeConstants.ts`**: `title: 'PHOTO MODE'` → `'БЕЗ ФИЛЬТРА'`,
+  `titleNoir: 'NOIR MODE'` → `'НУАР'` (единообразно с `PHOTO_FILTER_LABELS.noir`). Исправлен тест,
+  ожидавший некорректную транслитерацию `'НОАР'`.
+
+### Настройки — jsdom-совместимость и доступность
+
+- **`src/components/game/SettingsPanel.tsx`**: заменён `background` (shorthand) на `backgroundColor`
+  у кнопок вкладок/качества/сброса — цветовая запись `background` провоцировала сбой парсера jsdom
+  (`replaceBackgroundShorthand`) при клонировании DOM в тестах. Добавлен `aria-label` кнопкам
+  сложности (раньше доступное имя включало emoji-иконку).
+
+### Тесты
+
+- 21 упавший тест починен: `enemyTurn.test.ts` (12), `CombatSystem.test.ts` (4),
+  `combatFlow.integration.test.ts` (3), `photoModePresentation.test.ts` (1), `SettingsPanel.test.tsx` (1).
+- Тесты боевого оркестратора получают реалистичный мок `@/store/storeBindings` (пресет «Обычный»).
+- Итог: **2082/2082 тестов зелёные**, `tsc7 --noEmit` 0 ошибок, `vite build` успешен.
+
 ## v4.3.0 (2025-07-21) — "Прорыв: Disco Elysium механики + контент"
 
 Крупное обновление: выход из цикла багфиксов, добавление трёх новых систем и значительное расширение контента Акта 1.
