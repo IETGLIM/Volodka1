@@ -108,6 +108,7 @@ function makeParams(overrides: Partial<IncomingDamageParams> = {}): IncomingDama
     rng: SeededCombatRng.fromState({ state: 0xdeadbeef, rolls: 0, pity: { rollsSinceCrit: 0, rollsSinceHit: 0 } }),
     currentAct: 1,
     currentLevel: 1,
+    enemyDamageMultiplier: 1,
     spiritualSkillCount: 0,
     perkMods: { ...EMPTY_PERK_MODS },
     ...overrides,

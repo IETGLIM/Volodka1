@@ -26,8 +26,7 @@ import {
   getEnemyDamageMultiplier,
 } from './buffSystem';
 import { computeDamage } from './formulas';
-import { scaleEnemyDamageByDifficulty } from './combatDifficulty';
-import { getDifficultyStore } from '@/store/storeBindings';
+import { computeEnemyScalingFactor } from './combatDifficulty';
 import type { SeededCombatRng } from './combatRng';
 import type { CombatPerkModifiers } from '@/shared/perks/perkModifiers';
 
@@ -45,6 +44,8 @@ export interface IncomingDamageParams {
   currentAct: number;
   /** Current player level (for difficulty scaling). */
   currentLevel: number;
+  /** Global difficulty enemy-damage multiplier (resolved by the orchestrator). */
+  enemyDamageMultiplier: number;
   /** Number of unlocked spirit_ skills (spiritual damage reduction). */
   spiritualSkillCount: number;
   /** Resolved perk modifiers (caller resolves from game snapshot). */
@@ -56,13 +57,14 @@ export interface IncomingDamageParams {
  *
  * Pipeline (applied in order):
  *  1. Base damage from enemy attack + buffs
- * 2. Difficulty scaling (act/level)
- *  3. Player defending → defended damage
- *  4. Player defense boost buff → flat reduction
- *  5. Player damage_reduction buff → fractional reduction
- *  6. Player vulnerability buff → fractional amplification
- *  7. Spiritual skills → fractional reduction (5% per level)
- *  8. Perk incoming damage reduction → fractional reduction (capped at 0.8 total)
+ * 2. Act/level scaling
+ *  3. Global difficulty multiplier
+ *  4. Player defending → defended damage
+ *  5. Player defense boost buff → flat reduction
+ *  6. Player damage_reduction buff → fractional reduction
+ *  7. Player vulnerability buff → fractional amplification
+ *  8. Spiritual skills → fractional reduction (5% per level)
+ *  9. Perk incoming damage reduction → fractional reduction (capped at 0.8 total)
  *
  * Returns `{ damage, rng }` — the caller must use the updated RNG state.
  */
@@ -70,7 +72,7 @@ export function computeEnemyIncomingDamage(params: IncomingDamageParams): {
   damage: number;
   rng: SeededCombatRng;
 } {
-  const { combatState: cs, rng, currentAct, currentLevel, spiritualSkillCount, perkMods } = params;
+  const { combatState: cs, rng, currentAct, currentLevel, enemyDamageMultiplier, spiritualSkillCount, perkMods } = params;
 
   const enemyAtkBoost = getEnemyAttackBoost(cs);
   const effectiveEnemyAttack = cs.enemy.attack + enemyAtkBoost;
@@ -83,11 +85,11 @@ export function computeEnemyIncomingDamage(params: IncomingDamageParams): {
     rng: rng.asRollFn(),
   });
 
-  damage = scaleEnemyDamageByDifficulty(damage, undefined, currentAct, currentLevel);
+  // Act + level scaling (the global difficulty multiplier is applied once, below)
+  damage = Math.max(1, Math.floor(damage * computeEnemyScalingFactor(currentAct, currentLevel)));
 
-  // Apply global difficulty enemy damage multiplier
-  const difficultySettings = getDifficultyStore().difficultySettings;
-  damage = Math.max(1, Math.floor(damage * difficultySettings.enemyDamageMultiplier));
+  // Global difficulty enemy damage multiplier
+  damage = Math.max(1, Math.floor(damage * enemyDamageMultiplier));
 
   // Layer 3: Player defending (damage_reduction buff)
   if (hasBuffEffect(cs, 'player', 'damage_reduction')) {

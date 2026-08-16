@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsPanel } from '@/components/game/SettingsPanel';
+import { useDifficultyStore } from '@/store/stores/difficultyStore';
 import {
   initAccessibilitySettings,
   resetDefaultAccessibilityManager,
@@ -66,7 +67,7 @@ describe('SettingsPanel', () => {
     await user.click(screen.getByRole('button', { name: /Управление/ }));
     await user.click(screen.getByRole('button', { name: 'Сюжетный' }));
 
-    expect(localStorage.getItem('volodka_combat_difficulty')).toBe('story');
+    expect(useDifficultyStore.getState().difficultySettings.difficulty).toBe('story');
   });
 
   it('shows quality preset hints on the visual tab', async () => {

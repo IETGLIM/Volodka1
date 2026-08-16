@@ -9,7 +9,8 @@ import { useCutsceneStore } from './stores/cutsceneStore';
 import { useSaveStore } from './stores/saveStore';
 import { useDialogueHistoryStore } from './stores/dialogueHistoryStore';
 import { useAchievementStore } from './stores/achievementStore';
-const SLICE_STORES: Array<StoreApi<unknown>> = [usePlayerStore, useExplorationStore, useWorldStore, useUIStore, useCutsceneStore, useSaveStore, useDialogueHistoryStore, useAchievementStore];
+import { useDifficultyStore } from './stores/difficultyStore';
+const SLICE_STORES: Array<StoreApi<unknown>> = [usePlayerStore, useExplorationStore, useWorldStore, useUIStore, useCutsceneStore, useSaveStore, useDialogueHistoryStore, useAchievementStore, useDifficultyStore];
 
 let sliceMutationFrameId: number | null = null;
 let sliceMutationMicrotaskScheduled = false;

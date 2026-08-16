@@ -46,6 +46,26 @@ vi.mock('@/shared/dev/hmrDispose', () => ({
   registerHmrDispose: vi.fn(),
 }));
 
+// The combat orchestrator reads the global difficulty store. Provide a
+// realistic "normal" preset so pure combat flows don't need full store setup.
+vi.mock('@/store/storeBindings', () => {
+  const difficultySettings = {
+    difficulty: 'normal',
+    enemyDamageMultiplier: 1,
+    enemyHealthMultiplier: 1,
+    playerDamageMultiplier: 1,
+    xpMultiplier: 1,
+    creditsMultiplier: 1,
+    skillCheckThreshold: 0,
+    stressAccumulationRate: 1,
+    energyRegenRate: 1,
+    combatFleeBaseChance: 0.3,
+  };
+  return {
+    getDifficultyStore: () => ({ difficultySettings }),
+  };
+});
+
 import {
   disposeCombatSystem,
   getCombatState,
