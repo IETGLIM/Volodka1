@@ -3,6 +3,31 @@ export interface PromptInfo {
   text: string;
 }
 
+export interface MiniMapEntity {
+  x: number;
+  z: number;
+  kind: 'player' | 'npc' | 'enemy' | 'boss' | 'objective' | 'loot';
+  label?: string;
+  alive?: boolean;
+}
+
+export interface DamageNumber {
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  value: number;
+  crit: boolean;
+  t: number;
+}
+
+export interface AchievementToast {
+  id: number;
+  title: string;
+  desc: string;
+  icon: string;
+}
+
 export interface HudState {
   objectiveTitle: string;
   objectiveText: string;
@@ -28,6 +53,27 @@ export interface HudState {
   lootShards: number;
   lootBark: number;
   fishing: null | { phase: 'cast' | 'wait' | 'bite' | 'success' | 'fail'; t: number };
+  // новые поля AAA-уровня
+  score: number;
+  bestScore: number;
+  karma: number;
+  combo: number;
+  comboTimer: number;
+  factionReps: Record<string, number>;
+  miniMap: MiniMapEntity[];
+  damageNumbers: DamageNumber[];
+  isBossFight: boolean;
+  bossHp: number;
+  bossMax: number;
+  bossName: string;
+  level: number;
+  xp: number;
+  xpToNext: number;
+  skillPoints: number;
+  inventoryOpen: boolean;
+  dangerLevel: number;
+  weather: string;
+  fps: number;
 }
 
 export interface DialogueChoice {
@@ -64,6 +110,16 @@ export interface Settings {
   hints: boolean;
 }
 
+export interface GameOverData {
+  score: number;
+  best: number;
+  stanzas: number;
+  kills: number;
+  fireflies: number;
+  timeAlive: number;
+  isWin: boolean;
+}
+
 export interface GameEvents {
   hud: (h: HudState) => void;
   dialogue: (d: DialogueView | null) => void;
@@ -73,6 +129,10 @@ export interface GameEvents {
   fade: (a: number) => void;
   pause: (open: boolean) => void;
   journal: (open: boolean) => void;
+  gameOver: (data: GameOverData) => void;
+  achievement: (a: AchievementToast) => void;
+  screenShake: (intensity: number, duration: number) => void;
+  damageNumber: (d: DamageNumber) => void;
 }
 
 export interface JournalStanza {

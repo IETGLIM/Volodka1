@@ -201,6 +201,10 @@ export class LootSystem {
     return picked;
   }
 
+  getActivePositions(): {x:number; z:number}[] {
+    return this.items.map(i=>({ x:i.group.position.x, z:i.group.position.z }));
+  }
+
   clear() {
     for (const item of this.items) this.scene.remove(item.group);
     this.items = [];

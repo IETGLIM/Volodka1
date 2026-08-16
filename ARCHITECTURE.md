@@ -1,6 +1,7 @@
 # Архитектура — ВОЛОДЬКА RPG
 
-> Карта систем для инженеров. Актуально для **v4.2.43** (`package.json` / `APP_VERSION`).
+> Карта систем для инженеров. Актуально для **v5.0.0** (`package.json` / `APP_VERSION`) — AAA-полировка долины (src/game/*).
+> Предыдущая: v4.2.43. См. также: `docs/AAA_V5_POLISH.md`.
 > AA visual/content density plan: [`docs/AA_QUALITY_ROADMAP.md`](./docs/AA_QUALITY_ROADMAP.md).
 > Sequential uniformity backlog: [`docs/ARCHITECTURE_UNIFICATION.md`](./docs/ARCHITECTURE_UNIFICATION.md).
 >
